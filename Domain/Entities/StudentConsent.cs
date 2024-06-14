@@ -1,16 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Domain.EntitiesBase;
 
 namespace Domain.Entities
 {
-    internal class StudentConsent
+    internal class StudentConsent : ConsentBase
     {
-        public Guid Id { get; set; }
-        public bool PermissionForPhoto { get; set; }
-        public bool PermissionForDataProcessing { get; set; }
         public Student? Student { get; set; }
     }
 }

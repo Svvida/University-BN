@@ -1,20 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Domain.EntitiesBase;
 
 namespace Domain.Entities
 {
-    internal class EmployeeAddress
+    internal class EmployeeAddress : AddressBase
     {
-        public Guid Id { get; set; }
-        public string Country { get; set; } = "Poland";
-        public string City { get; set; } = string.Empty;
-        public string PostalCode { get; set; } = "00-000";
-        public string Street { get; set; } = string.Empty;
-        public string BuildingNumber { get; set; } = string.Empty;
-        public string? ApartmentNumber { get; set; }
         public Employee? Employee { get; set; }
     }
 }
