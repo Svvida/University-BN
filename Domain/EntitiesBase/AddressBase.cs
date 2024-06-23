@@ -1,13 +1,49 @@
-﻿namespace Domain.EntitiesBase
+﻿using System;
+using System.ComponentModel.DataAnnotations;
+
+namespace Domain.EntitiesBase
 {
-    internal class AddressBase
+    public abstract class AddressBase
     {
+        [Key]
         public Guid Id { get; set; }
-        public string Country { get; set; } = "Poland";
-        public string City { get; set; } = string.Empty;
-        public string PostalCode { get; set; } = "00-000";
-        public string Street { get; set; } = string.Empty;
-        public string BuildingNumber { get; set; } = string.Empty;
+
+        [Required]
+        [MaxLength(50)]
+        public string Country { get; set; }
+
+        [Required]
+        [MaxLength(50)]
+        public string City { get; set; }
+
+        [Required]
+        [MaxLength(10)]
+        public string PostalCode { get; set; }
+
+        [Required]
+        [MaxLength(50)]
+        public string Street { get; set; }
+
+        [Required]
+        [MaxLength(10)]
+        public string BuildingNumber { get; set; }
+
+        [MaxLength(10)]
         public string? ApartmentNumber { get; set; }
+
+        protected AddressBase()
+        {
+        }
+
+        protected AddressBase(Guid id, string country, string city, string postalCode, string street, string buildingNumber, string? apartmentNumber)
+        {
+            Id = id;
+            Country = country;
+            City = city;
+            PostalCode = postalCode;
+            Street = street;
+            BuildingNumber = buildingNumber;
+            ApartmentNumber = apartmentNumber;
+        }
     }
 }

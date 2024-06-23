@@ -1,9 +1,15 @@
 ﻿using Domain.EntitiesBase;
+using System;
 
 namespace Domain.Entities
 {
-    internal class EmployeeConsent : ConsentBase
+    public class EmployeeConsent : ConsentBase
     {
         public Employee? Employee { get; set; }
+
+        public EmployeeConsent() { }
+
+        public EmployeeConsent(Guid id, bool permissionForPhoto, bool permissionForDataProcessing)
+            : base(id, permissionForPhoto, permissionForDataProcessing) { }
     }
 }
