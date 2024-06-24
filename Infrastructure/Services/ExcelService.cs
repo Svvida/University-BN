@@ -10,6 +10,7 @@ namespace Infrastructure.Services
     {
         public Dictionary<string, List<T>> ReadFromExcel<T>(string filePath, Func<ExcelWorksheet, int, T> map)
         {
+            Logger.Instance.Log("Reading from Excel file: " + filePath);
             var sheetData = new Dictionary<string, List<T>>();
 
             using (var package = new ExcelPackage(new FileInfo(filePath)))

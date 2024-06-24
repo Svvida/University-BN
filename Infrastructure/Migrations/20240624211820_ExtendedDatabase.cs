@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class ExtendedDatabase : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -19,7 +19,7 @@ namespace Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    Name = table.Column<string>(type: "longtext", nullable: false)
+                    Name = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
@@ -33,17 +33,17 @@ namespace Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    Country = table.Column<string>(type: "longtext", nullable: false)
+                    Country = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    City = table.Column<string>(type: "longtext", nullable: false)
+                    City = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    PostalCode = table.Column<string>(type: "longtext", nullable: false)
+                    PostalCode = table.Column<string>(type: "varchar(10)", maxLength: 10, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Street = table.Column<string>(type: "longtext", nullable: false)
+                    Street = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    BuildingNumber = table.Column<string>(type: "longtext", nullable: false)
+                    BuildingNumber = table.Column<string>(type: "varchar(10)", maxLength: 10, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    ApartmentNumber = table.Column<string>(type: "longtext", nullable: true)
+                    ApartmentNumber = table.Column<string>(type: "varchar(10)", maxLength: 10, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
@@ -71,7 +71,7 @@ namespace Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    Name = table.Column<string>(type: "longtext", nullable: false)
+                    Name = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
@@ -85,17 +85,17 @@ namespace Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    Country = table.Column<string>(type: "longtext", nullable: false)
+                    Country = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    City = table.Column<string>(type: "longtext", nullable: false)
+                    City = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    PostalCode = table.Column<string>(type: "longtext", nullable: false)
+                    PostalCode = table.Column<string>(type: "varchar(10)", maxLength: 10, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Street = table.Column<string>(type: "longtext", nullable: false)
+                    Street = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    BuildingNumber = table.Column<string>(type: "longtext", nullable: false)
+                    BuildingNumber = table.Column<string>(type: "varchar(10)", maxLength: 10, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    ApartmentNumber = table.Column<string>(type: "longtext", nullable: true)
+                    ApartmentNumber = table.Column<string>(type: "varchar(10)", maxLength: 10, nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
@@ -123,7 +123,7 @@ namespace Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    Name = table.Column<string>(type: "longtext", nullable: false)
+                    Name = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
@@ -137,11 +137,11 @@ namespace Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    Login = table.Column<string>(type: "longtext", nullable: false)
+                    Login = table.Column<string>(type: "varchar(50)", maxLength: 50, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Password = table.Column<string>(type: "longtext", nullable: false)
+                    Password = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Email = table.Column<string>(type: "longtext", nullable: false)
+                    Email = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
@@ -155,16 +155,16 @@ namespace Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    ProgramId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    Name = table.Column<string>(type: "longtext", nullable: false)
+                    DegreeCourseId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    Name = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Degree_Paths", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Degree_Paths_Degree_Courses_ProgramId",
-                        column: x => x.ProgramId,
+                        name: "FK_Degree_Paths_Degree_Courses_DegreeCourseId",
+                        column: x => x.DegreeCourseId,
                         principalTable: "Degree_Courses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -175,21 +175,21 @@ namespace Infrastructure.Migrations
                 name: "Degree_Courses_Subjects",
                 columns: table => new
                 {
-                    ProgramId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    CourseId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
+                    DegreeCourseId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    SubjectId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Degree_Courses_Subjects", x => new { x.ProgramId, x.CourseId });
+                    table.PrimaryKey("PK_Degree_Courses_Subjects", x => new { x.DegreeCourseId, x.SubjectId });
                     table.ForeignKey(
-                        name: "FK_Degree_Courses_Subjects_Degree_Courses_ProgramId",
-                        column: x => x.ProgramId,
+                        name: "FK_Degree_Courses_Subjects_Degree_Courses_DegreeCourseId",
+                        column: x => x.DegreeCourseId,
                         principalTable: "Degree_Courses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Degree_Courses_Subjects_Subjects_CourseId",
-                        column: x => x.CourseId,
+                        name: "FK_Degree_Courses_Subjects_Subjects_SubjectId",
+                        column: x => x.SubjectId,
                         principalTable: "Subjects",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -201,15 +201,15 @@ namespace Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    Name = table.Column<string>(type: "longtext", nullable: false)
+                    Name = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Surname = table.Column<string>(type: "longtext", nullable: false)
+                    Surname = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     DateOfBirth = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     Gender = table.Column<int>(type: "int", nullable: false),
-                    ContactEmail = table.Column<string>(type: "longtext", nullable: false)
+                    ContactEmail = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    ContactPhone = table.Column<string>(type: "longtext", nullable: false)
+                    ContactPhone = table.Column<string>(type: "varchar(15)", maxLength: 15, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     DateOfAddmission = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     AddressId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
@@ -242,15 +242,15 @@ namespace Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    Name = table.Column<string>(type: "longtext", nullable: false)
+                    Name = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    Surname = table.Column<string>(type: "longtext", nullable: false)
+                    Surname = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     DateOfBirth = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     Gender = table.Column<int>(type: "int", nullable: false),
-                    ContactEmail = table.Column<string>(type: "longtext", nullable: false)
+                    ContactEmail = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    ContactPhone = table.Column<string>(type: "longtext", nullable: false)
+                    ContactPhone = table.Column<string>(type: "varchar(15)", maxLength: 15, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     DateOfAddmission = table.Column<DateTime>(type: "datetime(6)", nullable: false),
                     AddressId = table.Column<Guid>(type: "char(36)", nullable: true, collation: "ascii_general_ci"),
@@ -283,8 +283,7 @@ namespace Infrastructure.Migrations
                 columns: table => new
                 {
                     AccountId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    RoleId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
+                    RoleId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
                 },
                 constraints: table =>
                 {
@@ -310,7 +309,7 @@ namespace Infrastructure.Migrations
                 {
                     Id = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
                     DegreePathId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    Name = table.Column<string>(type: "longtext", nullable: false)
+                    Name = table.Column<string>(type: "varchar(100)", maxLength: 100, nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
@@ -326,15 +325,65 @@ namespace Infrastructure.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "StudentDegreeCourses",
+                columns: table => new
+                {
+                    StudentId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    DegreeCourseId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_StudentDegreeCourses", x => new { x.StudentId, x.DegreeCourseId });
+                    table.ForeignKey(
+                        name: "FK_StudentDegreeCourses_Degree_Courses_DegreeCourseId",
+                        column: x => x.DegreeCourseId,
+                        principalTable: "Degree_Courses",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_StudentDegreeCourses_Students_StudentId",
+                        column: x => x.StudentId,
+                        principalTable: "Students",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "StudentDegreePaths",
+                columns: table => new
+                {
+                    StudentId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    DegreePathId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_StudentDegreePaths", x => new { x.StudentId, x.DegreePathId });
+                    table.ForeignKey(
+                        name: "FK_StudentDegreePaths_Degree_Paths_DegreePathId",
+                        column: x => x.DegreePathId,
+                        principalTable: "Degree_Paths",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_StudentDegreePaths_Students_StudentId",
+                        column: x => x.StudentId,
+                        principalTable: "Students",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Modules_Subjects",
                 columns: table => new
                 {
                     ModuleId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
-                    CourseId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
+                    SubjectId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Modules_Subjects", x => new { x.ModuleId, x.CourseId });
+                    table.PrimaryKey("PK_Modules_Subjects", x => new { x.ModuleId, x.SubjectId });
                     table.ForeignKey(
                         name: "FK_Modules_Subjects_Modules_ModuleId",
                         column: x => x.ModuleId,
@@ -342,23 +391,48 @@ namespace Infrastructure.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Modules_Subjects_Subjects_CourseId",
-                        column: x => x.CourseId,
+                        name: "FK_Modules_Subjects_Subjects_SubjectId",
+                        column: x => x.SubjectId,
                         principalTable: "Subjects",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Degree_Courses_Subjects_CourseId",
-                table: "Degree_Courses_Subjects",
-                column: "CourseId");
+            migrationBuilder.CreateTable(
+                name: "StudentModules",
+                columns: table => new
+                {
+                    StudentId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci"),
+                    ModuleId = table.Column<Guid>(type: "char(36)", nullable: false, collation: "ascii_general_ci")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_StudentModules", x => new { x.StudentId, x.ModuleId });
+                    table.ForeignKey(
+                        name: "FK_StudentModules_Modules_ModuleId",
+                        column: x => x.ModuleId,
+                        principalTable: "Modules",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_StudentModules_Students_StudentId",
+                        column: x => x.StudentId,
+                        principalTable: "Students",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Degree_Paths_ProgramId",
+                name: "IX_Degree_Courses_Subjects_SubjectId",
+                table: "Degree_Courses_Subjects",
+                column: "SubjectId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Degree_Paths_DegreeCourseId",
                 table: "Degree_Paths",
-                column: "ProgramId");
+                column: "DegreeCourseId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Employees_AccountId",
@@ -384,9 +458,24 @@ namespace Infrastructure.Migrations
                 column: "DegreePathId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Modules_Subjects_CourseId",
+                name: "IX_Modules_Subjects_SubjectId",
                 table: "Modules_Subjects",
-                column: "CourseId");
+                column: "SubjectId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StudentDegreeCourses_DegreeCourseId",
+                table: "StudentDegreeCourses",
+                column: "DegreeCourseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StudentDegreePaths_DegreePathId",
+                table: "StudentDegreePaths",
+                column: "DegreePathId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_StudentModules_ModuleId",
+                table: "StudentModules",
+                column: "ModuleId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Students_AccountId",
@@ -425,7 +514,13 @@ namespace Infrastructure.Migrations
                 name: "Modules_Subjects");
 
             migrationBuilder.DropTable(
-                name: "Students");
+                name: "StudentDegreeCourses");
+
+            migrationBuilder.DropTable(
+                name: "StudentDegreePaths");
+
+            migrationBuilder.DropTable(
+                name: "StudentModules");
 
             migrationBuilder.DropTable(
                 name: "Users_Accounts_Roles");
@@ -437,10 +532,19 @@ namespace Infrastructure.Migrations
                 name: "Employees_Consents");
 
             migrationBuilder.DropTable(
+                name: "Subjects");
+
+            migrationBuilder.DropTable(
                 name: "Modules");
 
             migrationBuilder.DropTable(
-                name: "Subjects");
+                name: "Students");
+
+            migrationBuilder.DropTable(
+                name: "Roles");
+
+            migrationBuilder.DropTable(
+                name: "Degree_Paths");
 
             migrationBuilder.DropTable(
                 name: "Students_Addresses");
@@ -449,13 +553,7 @@ namespace Infrastructure.Migrations
                 name: "Students_Consents");
 
             migrationBuilder.DropTable(
-                name: "Roles");
-
-            migrationBuilder.DropTable(
                 name: "Users_Accounts");
-
-            migrationBuilder.DropTable(
-                name: "Degree_Paths");
 
             migrationBuilder.DropTable(
                 name: "Degree_Courses");

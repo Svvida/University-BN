@@ -2,9 +2,9 @@
 using System;
 using System.Linq;
 using Infrastructure.Data;
-using Domain.Entities;
 using Infrastructure.Services;
 using System.Collections.Generic;
+using Domain.Entities.EducationEntities;
 
 namespace Infrastructure.Seeding
 {
@@ -33,7 +33,7 @@ namespace Infrastructure.Seeding
                     var degreeProgram = context.Programs.FirstOrDefault(dp => dp.Name == degreePathName);
                     if (degreeProgram == null)
                     {
-                        degreeProgram = new DegreeProgram
+                        degreeProgram = new DegreeCourse
                         {
                             Id = Guid.NewGuid(),
                             Name = degreePathName
@@ -42,29 +42,29 @@ namespace Infrastructure.Seeding
                         context.SaveChanges();
                     }
 
-                    var degreePath = context.DegreePaths.FirstOrDefault(dp => dp.Name == degreePathName && dp.ProgramId == degreeProgram.Id);
+                    var degreePath = context.DegreePaths.FirstOrDefault(dp => dp.Name == degreePathName && dp.DegreeCourseId == degreeProgram.Id);
                     if (degreePath == null)
                     {
                         degreePath = new DegreePath
                         {
                             Id = Guid.NewGuid(),
                             Name = degreePathName,
-                            ProgramId = degreeProgram.Id
+                            DegreeCourseId = degreeProgram.Id
                         };
                         context.DegreePaths.Add(degreePath);
                         context.SaveChanges();
                     }
 
-                    var courses = new List<Course>();
+                    var courses = new List<Subject>();
                     var modules = new List<Module>();
-                    var moduleCourses = new List<ModuleCourse>();
+                    var moduleCourses = new List<ModuleSubject>();
 
                     foreach (var (courseName, moduleName) in data)
                     {
                         var course = courses.FirstOrDefault(c => c.Name == courseName);
                         if (course == null)
                         {
-                            course = new Course
+                            course = new Subject
                             {
                                 Id = Guid.NewGuid(),
                                 Name = courseName
@@ -84,10 +84,10 @@ namespace Infrastructure.Seeding
                             modules.Add(module);
                         }
 
-                        moduleCourses.Add(new ModuleCourse
+                        moduleCourses.Add(new ModuleSubject
                         {
                             ModuleId = module.Id,
-                            CourseId = course.Id
+                            SubjectId = course.Id
                         });
                     }
 
