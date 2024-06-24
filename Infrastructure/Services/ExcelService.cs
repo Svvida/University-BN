@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Utilities;
 
 namespace Infrastructure.Services
 {
@@ -17,10 +18,12 @@ namespace Infrastructure.Services
                 {
                     var list = new List<T>();
                     var rowCount = worksheet.Dimension.Rows;
+                    Logger.Instance.Log(rowCount.ToString());
 
                     for (int row = 2; row <= rowCount; row++) // Assuming the first row is the header
                     {
                         var item = map(worksheet, row);
+                        Logger.Instance.Log(item.ToString());
                         list.Add(item);
                     }
 

@@ -19,5 +19,8 @@ namespace Domain.EntitiesBase
             Id = id;
             Name = name;
         }
+
+        // Property to return the specyfic type name
+        public virtual string EntityTypeName => GetType().Name;
     }
 }

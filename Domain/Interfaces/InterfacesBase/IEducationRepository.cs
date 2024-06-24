@@ -6,8 +6,9 @@ namespace Domain.Interfaces.InterfacesBase
     {
         Task<T> GetByIdAsync(Guid id);
         Task<IEnumerable<T>> GetAllAsync();
-        Task AddAsync(T entity);
-        Task UpdateAsync(T entity);
-        Task DeleteAsync(T entity);
+        Task<IEnumerable<T>> GetByFieldAsync(string field, string value);
+        Task CreateAsync(T education);
+        Task UpdateAsync(T education);
+        Task DeleteAsync(Guid id);
     }
 }
