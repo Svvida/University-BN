@@ -8,14 +8,14 @@ namespace Infrastructure.Data
 {
     public class UniversityContext : DbContext
     {
-        public DbSet<Subject> Courses { get; set; }
+        public DbSet<Subject> Subjects { get; set; }
         public DbSet<Employee> Employees { get; set; }
         public DbSet<EmployeeAddress> EmployeesAddresses { get; set; }
         public DbSet<EmployeeConsent> EmployeesConsents { get; set; }
         public DbSet<Module> Modules { get; set; }
-        public DbSet<ModuleSubject> ModulesCourses { get; set; }
-        public DbSet<DegreeCourse> Programs { get; set; }
-        public DbSet<DegreeCourseSubject> ProgramsCourses { get; set; }
+        public DbSet<ModuleSubject> ModulesSubjects { get; set; }
+        public DbSet<DegreeCourse> DegreeCourses { get; set; }
+        public DbSet<DegreeCourseSubject> DegreeCourseSubjects { get; set; }
         public DbSet<DegreePath> DegreePaths { get; set; }
         public DbSet<Role> Roles { get; set; }
         public DbSet<Student> Students { get; set; }

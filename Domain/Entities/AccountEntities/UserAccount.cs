@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Domain.Entities.EmployeeEntities;
+using Domain.Entities.StudentEntities;
 using System.ComponentModel.DataAnnotations;
 
-namespace Domain.Entities
+namespace Domain.Entities.AccountEntities
 {
     public class UserAccount
     {

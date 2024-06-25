@@ -1,7 +1,6 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace Domain.Entities
+namespace Domain.Entities.AccountEntities
 {
     public class UserAccountRole
     {

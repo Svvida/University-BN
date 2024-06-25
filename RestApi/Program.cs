@@ -6,6 +6,8 @@ using Infrastructure.Repositories.RepositoriesBase;
 using Infrastructure.Seeding;
 using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
+using Utilities;
 
 namespace RestApi
 {
@@ -20,6 +22,9 @@ namespace RestApi
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            // Add configuration
+            var configuration = builder.Configuration;
+
             // Configure DbContext
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
             builder.Services.AddDbContext<UniversityContext>(options =>
@@ -31,7 +36,14 @@ namespace RestApi
             // Register ExcelService
             builder.Services.AddSingleton<ExcelService>();
 
+            // Pass EPPlus configuration to Infrastucture layer
+            ExcelPackage.LicenseContext = configuration.GetSection("EPPlus:ExcelPackage").Get<LicenseContext>();
+
             var app = builder.Build();
+
+            // Initialize Logger
+            var logger = app.Services.GetRequiredService<ILogger<Logger>>();
+            Logger.Instance.SetLogger(logger);
 
             // Seed database
             using (var scope = app.Services.CreateScope())
@@ -39,13 +51,14 @@ namespace RestApi
                 var services = scope.ServiceProvider;
                 try
                 {
-                    var contentRootPath = app.Services.GetRequiredService<IWebHostEnvironment>().ContentRootPath;
-                    var excelFilePath = Path.Combine(contentRootPath, "Data", "Informatyka_Stosowana.xlsx");
-                    SeedData.Initialize(services, excelFilePath);
+                    var excelFilePaths = configuration.GetSection("SeedData:ExcelFilePaths").Get<List<string>>();
+                    foreach (var filePath in excelFilePaths)
+                    {
+                        SeedDataFromFile.Initialize(services, filePath);
+                    }
                 }
                 catch (Exception ex)
                 {
-                    var logger = services.GetRequiredService<ILogger<Program>>();
                     logger.LogError(ex, "An error occurred while seeding the database.");
                 }
             }

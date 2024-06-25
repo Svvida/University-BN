@@ -1,7 +1,6 @@
 ﻿using Domain.EntitiesBase;
-using System;
 
-namespace Domain.Entities
+namespace Domain.Entities.EmployeeEntities
 {
     public class EmployeeConsent : ConsentBase
     {

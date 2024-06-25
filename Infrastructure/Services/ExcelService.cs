@@ -19,12 +19,11 @@ namespace Infrastructure.Services
                 {
                     var list = new List<T>();
                     var rowCount = worksheet.Dimension.Rows;
-                    Logger.Instance.Log(rowCount.ToString());
+                    Logger.Instance.Log($"Processing sheet: {worksheet.Name}, rows: {rowCount}");
 
-                    for (int row = 2; row <= rowCount; row++) // Assuming the first row is the header
+                    for (int row = 2; row <= rowCount; row++)
                     {
                         var item = map(worksheet, row);
-                        Logger.Instance.Log(item.ToString());
                         list.Add(item);
                     }
 

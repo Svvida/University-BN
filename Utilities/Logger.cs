@@ -1,10 +1,13 @@
 ﻿
+using Microsoft.Extensions.Logging;
+
 namespace Utilities
 {
     public sealed class Logger
     {
-        private static Logger instance;
+        private static Logger _instance;
         private static readonly object lockObj = new object();
+        private static ILogger<Logger> _logger;
 
         private Logger()
         {
@@ -14,23 +17,28 @@ namespace Utilities
         {
             get
             {
-                if (instance is null)
+                if (_instance is null)
                 {                
                     lock (lockObj)
                     {
-                        if (instance is null)
+                        if (_instance is null)
                         {
-                            instance = new Logger();
+                            _instance = new Logger();
                         }
                     }
                 }
-                return instance;
+                return _instance;
             }
+        }
+
+        public void SetLogger(ILogger<Logger> logger)
+        {
+            _logger = logger;
         }
 
         public void Log(string message)
         {
-            Console.WriteLine($"{DateTime.Now}: {message}");
+            _logger.LogInformation(message);
         }
     }
 }

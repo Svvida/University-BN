@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.Configuration;
 
 namespace Infrastructure.Data
 {
@@ -8,8 +9,15 @@ namespace Infrastructure.Data
         public UniversityContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<UniversityContext>();
-            // Hardcoded connection string for design-time purposes
-            var connectionString = "Server=localhost;Database=University;User=swida;Password=123;";
+            
+            // Load the configuration from the appsettings.json
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json")
+                .Build();
+
+            // Get the connection string from the configuration
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
             optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
 
             return new UniversityContext(optionsBuilder.Options);

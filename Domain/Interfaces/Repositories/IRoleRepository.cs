@@ -1,6 +1,6 @@
-﻿using Domain.Entities;
+﻿using Domain.Entities.AccountEntities;
 
-namespace Domain.Interfaces
+namespace Domain.Interfaces.Repositories
 {
     public interface IRoleRepository
     {

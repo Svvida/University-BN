@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Domain.Entities.AccountEntities;
 using Domain.EntitiesBase;
 using Domain.Enums;
 
-namespace Domain.Entities
+namespace Domain.Entities.EmployeeEntities
 {
     public class Employee : PersonBase
     {
