@@ -20,9 +20,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RestApi", "RestApi\RestApi.
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Resources", "Resources", "{2B425356-F028-49F9-971A-B90352C6413B}"
 	ProjectSection(SolutionItems) = preProject
-		Banking_Programs.xlsx = Banking_Programs.xlsx
-		Financials_Programs.xlsx = Financials_Programs.xlsx
-		Informatyka_Stosowana.xlsx = Informatyka_Stosowana.xlsx
+		Banking Programs.xlsx = Banking Programs.xlsx
+		Financials Programs.xlsx = Financials Programs.xlsx
+		Informatyka Stosowana.xlsx = Informatyka Stosowana.xlsx
 	EndProjectSection
 EndProject
 Global

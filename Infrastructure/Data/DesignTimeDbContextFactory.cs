@@ -9,11 +9,14 @@ namespace Infrastructure.Data
         public UniversityContext CreateDbContext(string[] args)
         {
             var optionsBuilder = new DbContextOptionsBuilder<UniversityContext>();
-            
+
+            var basePath = Directory.GetCurrentDirectory();
+            var projectPath = Path.GetFullPath(Path.Combine(basePath, @"..\RestApi"));
+
             // Load the configuration from the appsettings.json
             var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json")
+                .SetBasePath(projectPath)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .Build();
 
             // Get the connection string from the configuration

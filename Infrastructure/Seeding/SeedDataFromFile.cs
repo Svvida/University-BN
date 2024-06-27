@@ -13,11 +13,18 @@ namespace Infrastructure.Seeding
 {
     public class SeedDataFromFile
     {
-        public static void Initialize(IServiceProvider serviceProvider, string excelFilePath)
+        private readonly UniversityContext _context;
+        private readonly ExcelService _excelService;
+
+        public SeedDataFromFile(IServiceProvider serviceProvider)
         {
-                var context = serviceProvider.GetRequiredService<UniversityContext>();
-                var excelService = new ExcelService();
-                var sheetData = excelService.ReadFromExcel<(string Course, string Module)> (excelFilePath, (worksheet, row) =>
+            _context = serviceProvider.GetRequiredService<UniversityContext>();
+            _excelService = new ExcelService();
+        }
+
+        public void Initialize(string excelFilePath)
+        {
+                var sheetData = _excelService.ReadFromExcel<(string Course, string Module)> (excelFilePath, (worksheet, row) =>
                 {
                     return (
                     Course: worksheet.Cells[row, 1].Text, // "Przedmiot" column
@@ -30,7 +37,7 @@ namespace Infrastructure.Seeding
                 var degreeCourseName = Path.GetFileNameWithoutExtension(excelFilePath);
                 Logger.Instance.Log($"Created DegreeCourse: {degreeCourseName}");
 
-                var degreeCourse = EnsureDegreeCourse(context, degreeCourseName);
+                var degreeCourse = EnsureDegreeCourse(degreeCourseName);
 
                 foreach(var sheet in sheetData)
                 {
@@ -39,15 +46,15 @@ namespace Infrastructure.Seeding
 
                     Logger.Instance.Log($"Degree path: {degreePathName}");
 
-                    var degreePath = EnsureDegreePath(context, degreeCourse, degreePathName);
-                    ProcessSheetData(context, degreeCourse, degreePath, data);
+                    var degreePath = EnsureDegreePath(degreeCourse, degreePathName);
+                    ProcessSheetData(degreeCourse, degreePath, data);
                 }
             
         }
 
-        private static DegreeCourse EnsureDegreeCourse(UniversityContext context, string degreeCourseName)
+        private DegreeCourse EnsureDegreeCourse(string degreeCourseName)
         {
-            var degreeCourse = context.DegreeCourses.FirstOrDefault(dc => dc.Name == degreeCourseName);
+            var degreeCourse = _context.DegreeCourses.AsNoTracking().FirstOrDefault(dc => dc.Name == degreeCourseName);
             if(degreeCourse is null)
             {
                 degreeCourse = new DegreeCourse
@@ -55,16 +62,16 @@ namespace Infrastructure.Seeding
                     Id = Guid.NewGuid(),
                     Name = degreeCourseName
                 };
-                context.DegreeCourses.Add( degreeCourse );
-                context.SaveChanges();
+                _context.DegreeCourses.Add( degreeCourse );
+                _context.SaveChanges();
                 Logger.Instance.Log($"Created new DegreeCourse: {degreeCourse}");
             }
             return degreeCourse;
         }
 
-        private static DegreePath EnsureDegreePath(UniversityContext context, DegreeCourse degreeCourse, string degreePathName)
+        private DegreePath EnsureDegreePath(DegreeCourse degreeCourse, string degreePathName)
         {
-            var degreePath = context.DegreePaths.FirstOrDefault(dp => dp.Name == degreePathName && dp.DegreeCourseId == degreeCourse.Id);
+            var degreePath = _context.DegreePaths.AsNoTracking().FirstOrDefault(dp => dp.Name == degreePathName && dp.DegreeCourseId == degreeCourse.Id);
             if(degreePath is null)
             {
                 degreePath = new DegreePath
@@ -73,16 +80,16 @@ namespace Infrastructure.Seeding
                     Name = degreePathName,
                     DegreeCourseId = degreeCourse.Id
                 };
-                context.DegreePaths.Add( degreePath );
-                context.SaveChanges();
+                _context.DegreePaths.Add( degreePath );
+                _context.SaveChanges();
                 Logger.Instance.Log($"Created new DegreePath: {degreePath}");
             }
             return degreePath;
         }
 
-        private static Module EnsureModule(UniversityContext context, DegreePath degreePath, string moduleName, List<Module> modules)
+        private Module EnsureModule(DegreePath degreePath, string moduleName, List<Module> modules)
         {
-            var module = context.Modules.FirstOrDefault(m => m.Name == moduleName && m.DegreePathId == degreePath.Id);
+            var module = _context.Modules.AsNoTracking().FirstOrDefault(m => m.Name == moduleName && m.DegreePathId == degreePath.Id);
             if(module is null)
             {
                 module = new Module
@@ -93,16 +100,12 @@ namespace Infrastructure.Seeding
                 };
                 modules.Add( module );
             }
-            else
-            {
-                context.Entry(module).State = EntityState.Detached;
-            }
             return module;
         }
 
-        private static Subject EnsureSubject(UniversityContext context, string subjectName, List<Subject> subjects)
+        private Subject EnsureSubject(string subjectName, List<Subject> subjects)
         {
-            var subject = context.Subjects.FirstOrDefault(s => s.Name == subjectName);
+            var subject = _context.Subjects.AsNoTracking().FirstOrDefault(s => s.Name == subjectName);
             if(subject is null)
             {
                 subject = new Subject
@@ -112,16 +115,12 @@ namespace Infrastructure.Seeding
                 };
                 subjects.Add( subject );
             }
-            else
-            {
-                context.Entry(subject).State = EntityState.Detached;
-            }
             return subject;
         }
 
-        private static void AddToDegreeCourseSubject(UniversityContext context, DegreeCourse degreeCourse, Subject subject, List<DegreeCourseSubject> degreeCourseSubjects)
+        private void AddToDegreeCourseSubject(DegreeCourse degreeCourse, Subject subject, List<DegreeCourseSubject> degreeCourseSubjects)
         {
-            if (!context.DegreeCourseSubjects.Any(dcs => dcs.DegreeCourseId == degreeCourse.Id && dcs.SubjectId == subject.Id) &&
+            if (!_context.DegreeCourseSubjects.Any(dcs => dcs.DegreeCourseId == degreeCourse.Id && dcs.SubjectId == subject.Id) &&
                 !degreeCourseSubjects.Any(dcs => dcs.DegreeCourseId == degreeCourse.Id && dcs.SubjectId == subject.Id))
             {
                 degreeCourseSubjects.Add(new DegreeCourseSubject
@@ -132,9 +131,9 @@ namespace Infrastructure.Seeding
             }
         }
 
-        private static void AddToModuleSubject(UniversityContext context, Module module, Subject subject, List<ModuleSubject> moduleSubjects)
+        private void AddToModuleSubject(Module module, Subject subject, List<ModuleSubject> moduleSubjects)
         {
-            if (!context.ModulesSubjects.Any(ms => ms.ModuleId == module.Id && ms.SubjectId == subject.Id) &&
+            if (!_context.ModulesSubjects.Any(ms => ms.ModuleId == module.Id && ms.SubjectId == subject.Id) &&
                 !moduleSubjects.Any(ms => ms.ModuleId == module.Id && ms.SubjectId == subject.Id))
             {
                 moduleSubjects.Add(new ModuleSubject
@@ -145,7 +144,7 @@ namespace Infrastructure.Seeding
             }
         }
 
-        private static void ProcessSheetData(UniversityContext context, DegreeCourse degreeCourse, DegreePath degreePath, List<(string Course, string Module)> data)
+        private void ProcessSheetData(DegreeCourse degreeCourse, DegreePath degreePath, List<(string Course, string Module)> data)
         {
             var subjects = new List<Subject>();
             var modules = new List<Module>();
@@ -154,31 +153,36 @@ namespace Infrastructure.Seeding
 
             foreach(var (subjectName, moduleName) in data)
             {
-                var subject = EnsureSubject(context, subjectName, subjects);
+                if(string.IsNullOrEmpty(subjectName))
+                {
+                    continue;
+                }
+
+                var subject = EnsureSubject(subjectName, subjects);
 
                 if(moduleName == "Kierunkowy")
                 {
-                    AddToDegreeCourseSubject(context, degreeCourse, subject, degreeCourseSubjects);
+                    AddToDegreeCourseSubject(degreeCourse, subject, degreeCourseSubjects);
                 }
                 else if(!string.IsNullOrEmpty(moduleName))
                 {
-                    var module = EnsureModule(context, degreePath, moduleName, modules);
-                    AddToModuleSubject(context, module, subject, moduleSubjects);
+                    var module = EnsureModule(degreePath, moduleName, modules);
+                    AddToModuleSubject(module, subject, moduleSubjects);
                 }
             }
 
-            context.Subjects.AddRange(subjects);
-            context.Modules.AddRange(modules);
-            context.SaveChanges();
+            _context.Subjects.AddRange(subjects);
+            _context.Modules.AddRange(modules);
+            _context.SaveChanges();
 
             // Add moduleSubjects and degreeCourseSubjects after saving changes to avoid tracking issues
-            context.ModulesSubjects.AddRange(moduleSubjects.Where(ms =>
-            !context.ModulesSubjects.Any(existingMs => existingMs.ModuleId == ms.ModuleId && existingMs.SubjectId == ms.SubjectId)));
+            _context.ModulesSubjects.AddRange(moduleSubjects.Where(ms =>
+            !_context.ModulesSubjects.Any(existingMs => existingMs.ModuleId == ms.ModuleId && existingMs.SubjectId == ms.SubjectId)));
 
-            context.DegreeCourseSubjects.AddRange(degreeCourseSubjects.Where(dcs =>
-            !context.DegreeCourseSubjects.Any(existingDcs => existingDcs.DegreeCourseId == dcs.DegreeCourseId && existingDcs.SubjectId == dcs.SubjectId)));
+            _context.DegreeCourseSubjects.AddRange(degreeCourseSubjects.Where(dcs =>
+            !_context.DegreeCourseSubjects.Any(existingDcs => existingDcs.DegreeCourseId == dcs.DegreeCourseId && existingDcs.SubjectId == dcs.SubjectId)));
 
-            context.SaveChanges();
+            _context.SaveChanges();
         }
     }
 }

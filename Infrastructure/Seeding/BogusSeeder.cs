@@ -23,11 +23,11 @@ namespace Infrastructure.Seeding
                 // Generate Students
                 var students = StudentSeeder.GenerateStudents(accounts.Take(100).ToList(), context);
                 context.Students.AddRange(students);
+                context.SaveChanges();
 
                 // Generate Employees
                 var employees = EmployeeSeeder.GenerateEmployees(accounts.Skip(100).Take(100).ToList(), context);
                 context.Employees.AddRange(employees);
-
                 context.SaveChanges();
             }
         }

@@ -30,7 +30,7 @@ namespace Infrastructure.Seeding.EmployeeSeeding
                 .RuleFor(s => s.DateOfBirth, f => f.Date.Past(20, DateTime.Now.AddYears(-18)))
                 .RuleFor(s => s.Gender, f => f.PickRandom<Gender>())
                 .RuleFor(s => s.ContactEmail, f => f.Internet.Email())
-                .RuleFor(s => s.ContactPhone, f => f.Phone.PhoneNumber())
+                .RuleFor(s => s.ContactPhone, f => f.Phone.PhoneNumberFormat())
                 .RuleFor(s => s.DateOfAddmission, f => f.Date.Past(3))
                 .RuleFor(s => s.AddressId, (f, s) => addresses[f.IndexFaker].Id)
                 .RuleFor(s => s.AccountId, (f, s) => accounts[f.IndexFaker].Id)
