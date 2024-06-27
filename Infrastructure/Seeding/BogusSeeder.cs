@@ -2,11 +2,10 @@
 using Domain.Entities.StudentEntities;
 using Infrastructure.Data;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Domain.Enums;
+using Infrastructure.Seeding.AccountSeeding;
+using Infrastructure.Seeding.StudentSeeding;
+using Infrastructure.Seeding.EmployeeSeeding;
 
 namespace Infrastructure.Seeding
 {
@@ -16,12 +15,20 @@ namespace Infrastructure.Seeding
         {
             using(var context = serviceProvider.GetRequiredService<UniversityContext>())
             {
-                if (!context.Students.Any())
-                {
-                    var students = new Faker<Student>()
-                        .RuleFor(s => s.Id, f => Guid.NewGuid())
-                        .RuleFor(s => s.Name, f => f.Name.FirstName());
-                }
+                // Generate unique accounts
+                var accounts = AccountSeeder.GenerateAccounts(200);
+                context.UsersAccounts.AddRange(accounts);
+                context.SaveChanges();
+
+                // Generate Students
+                var students = StudentSeeder.GenerateStudents(accounts.Take(100).ToList(), context);
+                context.Students.AddRange(students);
+
+                // Generate Employees
+                var employees = EmployeeSeeder.GenerateEmployees(accounts.Skip(100).Take(100).ToList(), context);
+                context.Employees.AddRange(employees);
+
+                context.SaveChanges();
             }
         }
     }

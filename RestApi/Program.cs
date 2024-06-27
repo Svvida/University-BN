@@ -56,6 +56,8 @@ namespace RestApi
                     {
                         SeedDataFromFile.Initialize(services, filePath);
                     }
+
+                    BogusSeeder.Initialize(services);
                 }
                 catch (Exception ex)
                 {
