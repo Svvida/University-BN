@@ -1,4 +1,5 @@
 ﻿using Domain.EntitiesBase;
+using Domain.Enums;
 using Domain.Interfaces.InterfacesBase;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -39,16 +40,28 @@ namespace Infrastructure.Repositories.RepositoriesBase
             return await _educations.ToListAsync();
         }
 
-        public async Task<IEnumerable<T>> GetByFieldAsync(string field, string value)
+        public async Task<IEnumerable<T>> GetByFieldAsync(EducationSearchableFields field, string value)
         {
-            var educations = await _educations.Where(e => EF.Property<string>(e, field)==value).ToListAsync();
-            if (educations.Any())
+            string dbFieldName = GetDbFieldName(field);
+
+            var education = await _educations.Where(e => EF.Property<string>(e, dbFieldName) == value).ToListAsync();
+
+            if (!education.Any())
             {
-                return educations;
+                throw new KeyNotFoundException($"No {typeof(T).Name} with {field} == {value} was found");
             }
-            else
+
+            return education;
+        }
+
+        private string GetDbFieldName(EducationSearchableFields field)
+        {
+            switch (field)
             {
-                throw new KeyNotFoundException($"No {typeof(T).Name} found with {field} = {value}");
+                case EducationSearchableFields.Name:
+                    return "Name";
+                default:
+                    throw new ArgumentException("Invalid field", nameof(field));
             }
         }
 

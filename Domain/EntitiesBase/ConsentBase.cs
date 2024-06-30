@@ -6,9 +6,10 @@ namespace Domain.EntitiesBase
     {
         [Key]
         public Guid Id { get; set; }
-
-        public bool PermissionForPhoto { get; set; }
-        public bool PermissionForDataProcessing { get; set; }
+        [Required]
+        public bool PermissionForPhoto { get; set; } = false;
+        [Required]
+        public bool PermissionForDataProcessing { get; set; } = false;
 
         protected ConsentBase()
         {

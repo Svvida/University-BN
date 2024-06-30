@@ -1,20 +1,21 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Domain.Entities.AccountEntities { 
-    public class Role
+namespace Domain.Entities.AccountEntities
 {
-    [Key]
-    public Guid Id { get; set; }
-    [Required, MaxLength(50)]
-    public string Name { get; set; }
-    public ICollection<UserAccountRole> UserAccountRoles { get; set; } = new List<UserAccountRole>();
-
-    public Role() { }
-
-    public Role(Guid id, string name)
+    public class Role
     {
-        Id = id;
-        Name = name;
+        [Key]
+        public Guid Id { get; set; }
+        [Required, MaxLength(50)]
+        public string Name { get; set; }
+        public ICollection<UserAccountRole> UserAccountRoles { get; set; } = new List<UserAccountRole>();
+
+        public Role() { }
+
+        public Role(Guid id, string name)
+        {
+            Id = id;
+            Name = name;
+        }
     }
-}
 }

@@ -1,9 +1,9 @@
-﻿using Domain.EntitiesBase;
+﻿using Application.DTOs.BaseDtos;
 using Domain.Enums;
 
-namespace Domain.Interfaces.InterfacesBase
+namespace Application.Interfaces
 {
-    public interface IEducationRepository<T> where T : EducationBase
+    public interface IEducationService<T> where T : EducationDto
     {
         Task<T> GetByIdAsync(Guid id);
         Task<IEnumerable<T>> GetAllAsync();

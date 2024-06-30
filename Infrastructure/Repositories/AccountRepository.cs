@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Domain.Enums;
 
 namespace Infrastructure.Repositories
 {
@@ -37,16 +38,30 @@ namespace Infrastructure.Repositories
             return await _context.UsersAccounts.ToListAsync();
         }
 
-        public async Task<IEnumerable<UserAccount>> GetByFieldAsync(string field, string value)
+        public async Task<IEnumerable<UserAccount>> GetByFieldAsync(AccountSearchableFields field, string value)
         {
-            var accounts = await _context.UsersAccounts.Where(e => EF.Property<string>(e, field) == value).ToListAsync();
-            if (accounts.Any())
-            {
-                return accounts;
-            }
-            else
+            string dbFieldName = GetDbFieldName(field);
+            var accounts = await _context.UsersAccounts.Where(e => EF.Property<string>(e, dbFieldName) == value).ToListAsync();
+
+            if(!accounts.Any())
             {
                 throw new KeyNotFoundException($"No Account fount with {field} = {value}");
+            }
+
+            return accounts;
+        }
+
+        private string GetDbFieldName(AccountSearchableFields field)
+        {
+            switch (field)
+            {
+                case AccountSearchableFields.Login:
+                    return "Login";
+                case AccountSearchableFields.Email:
+                    return "Email";
+                default:
+                    throw new ArgumentException("Invalid field", nameof(field));
+
             }
         }
 

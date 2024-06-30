@@ -9,11 +9,11 @@ namespace Domain.EntitiesBase
         public Guid Id { get; set; }
 
         [Required]
-        [MaxLength(100)]
+        [StringLength(100, MinimumLength = 2)]
         public string Name { get; set; }
 
         [Required]
-        [MaxLength(100)]
+        [StringLength(100, MinimumLength = 2)]
         public string Surname { get; set; }
 
         [Required]
@@ -26,6 +26,7 @@ namespace Domain.EntitiesBase
         [MaxLength(100)]
         [EmailAddress]
         public string ContactEmail { get; set; }
+        [Required]
 
         [MaxLength(15)]
         public string ContactPhone { get; set; }

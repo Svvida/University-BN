@@ -10,11 +10,11 @@ namespace Domain.Entities.AccountEntities
         public Guid Id { get; set; }
 
         [Required]
-        [MaxLength(50)]
+        [StringLength(50, MinimumLength = 5)]
         public string Login { get; set; }
 
         [Required]
-        [MaxLength(100)]
+        [StringLength(50, MinimumLength = 8)]
         public string Password { get; set; }
 
         [Required]

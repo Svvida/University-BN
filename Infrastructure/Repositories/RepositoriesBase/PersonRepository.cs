@@ -1,4 +1,5 @@
 ﻿using Domain.EntitiesBase;
+using Domain.Enums;
 using Domain.Interfaces.InterfacesBase;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -41,16 +42,38 @@ namespace Infrastructure.Repositories.RepositoriesBase
             return await _persons.ToListAsync();
         }
 
-        public async Task<IEnumerable<T>> GetByFieldAsync(string field, string value)
+        public async Task<IEnumerable<T>> GetByFieldAsync(PersonSearchableFields field, string value)
         {
-            var persons = await _persons.Where(e => EF.Property<string>(e, field) == value).ToListAsync();
-            if (persons.Any())
-            {
-                return persons;
-            }
-            else
+
+            string dbFieldName = GetDbFieldName(field);
+            var person = await _persons.Where(e => EF.Property<string>(e, dbFieldName) == value).ToListAsync();
+
+            if(!person.Any())
             {
                 throw new KeyNotFoundException($"No {typeof(T).Name} found with {field} = {value}");
+            }
+
+            return person;
+        }
+
+        private string GetDbFieldName(PersonSearchableFields field)
+        {
+            switch (field)
+            {
+                case PersonSearchableFields.Name:
+                    return "Name";
+                case PersonSearchableFields.Surname:
+                    return "Surname";
+                case PersonSearchableFields.DateOfBirth:
+                    return "DateOfBirth";
+                case PersonSearchableFields.ContactEmail:
+                    return "ContactEmail";
+                case PersonSearchableFields.ContactPhone:
+                    return "ContactPhone";
+                case PersonSearchableFields.DateOfAddmission:
+                    return "DateOfAddmission";
+                default:
+                    throw new ArgumentException("Invalid field", nameof(field));
             }
         }
 

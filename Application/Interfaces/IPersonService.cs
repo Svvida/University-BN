@@ -1,13 +1,13 @@
-﻿using Domain.EntitiesBase;
+﻿using Application.DTOs.BaseDtos;
 using Domain.Enums;
 
-namespace Domain.Interfaces.InterfacesBase
+namespace Application.Interfaces
 {
-    public interface IPersonRepository<T> where T : PersonBase
+    public interface IPersonService<T> where T : PersonOnlyDto
     {
         Task<T> GetByIdAsync(Guid id);
         Task<IEnumerable<T>> GetAllAsync();
-        Task<IEnumerable<T>> GetByFieldAsync(PersonSearchableFields field, string value);
+        Task<IEnumerable<T>> GetByFieldAsync(AccountSearchableFields field, string value);
         Task CreateAsync(T person);
         Task UpdateAsync(T person);
         Task DeleteAsync(Guid id);

@@ -1,9 +1,9 @@
-﻿using Domain.EntitiesBase;
+﻿using Application.DTOs.BaseDtos;
 using Domain.Enums;
 
-namespace Domain.Interfaces.InterfacesBase
+namespace Application.Interfaces
 {
-    public interface IAddressRepository<T> where T : AddressBase
+    public interface IAddressService<T> where T : AddressOnlyDto
     {
         Task<T> GetByIdAsync(Guid id);
         Task<IEnumerable<T>> GetAllAsync();

@@ -1,10 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Domain.EntitiesBase
+namespace Application.DTOs.BaseDtos
 {
-    public abstract class AddressBase
+    public abstract class AddressOnlyDto
     {
-        [Key]
+        [Required]
         public Guid Id { get; set; }
 
         [Required]
@@ -29,20 +29,5 @@ namespace Domain.EntitiesBase
 
         [StringLength(5, MinimumLength = 1)]
         public string? ApartmentNumber { get; set; }
-
-        protected AddressBase()
-        {
-        }
-
-        protected AddressBase(Guid id, string country, string city, string postalCode, string street, string buildingNumber, string? apartmentNumber)
-        {
-            Id = id;
-            Country = country;
-            City = city;
-            PostalCode = postalCode;
-            Street = street;
-            BuildingNumber = buildingNumber;
-            ApartmentNumber = apartmentNumber;
-        }
     }
 }

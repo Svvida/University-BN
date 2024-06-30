@@ -1,4 +1,5 @@
 ﻿using Domain.EntitiesBase;
+using Domain.Enums;
 using Domain.Interfaces.InterfacesBase;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -34,23 +35,40 @@ namespace Infrastructure.Repositories.RepositoriesBase
             return await _addresses.ToListAsync();
         }
 
-        public async Task<IEnumerable<T>> GetByFieldAsync(string field, string value)
+        public async Task<IEnumerable<T>> GetByFieldAsync(AddressSearchableFields field, string value)
         {
-            if (string.IsNullOrEmpty(field))
+            string dbFieldName = GetDbFieldName(field);
+            var address = await _addresses.Where(e => EF.Property<string>(e, dbFieldName) == value)
+                .ToListAsync();
+
+            if(!address.Any())
             {
-                throw new ArgumentException("Field name cannot be empty", nameof(field));
+                throw new KeyNotFoundException($"No address found with {dbFieldName} = {value}");
             }
-            var address = await _addresses.Where(e => EF.Property<string>(e, field) == value).ToListAsync();
-            if (address is not null)
-            {
-                return address;
-            }
-            else
-            {
-                throw new KeyNotFoundException("No addresses found with the specified field and value");
-            }
+
+            return address;
         }
 
+        private string GetDbFieldName(AddressSearchableFields field)
+        {
+            switch(field)
+            {
+                case AddressSearchableFields.City:
+                    return "City";
+                case AddressSearchableFields.Country:
+                    return "Country";
+                case AddressSearchableFields.PostalCode:
+                    return "PostalCode";
+                case AddressSearchableFields.Street:
+                    return "Street";
+                case AddressSearchableFields.BuildingNumber:
+                    return "BuildingNumber";
+                case AddressSearchableFields.ApartmentNumber:
+                    return "ApartmentNumber";
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(field), field, "Unknown field");
+            }
+        }
         public async Task CreateAsync(T address)
         {
             await _addresses.AddAsync(address);
