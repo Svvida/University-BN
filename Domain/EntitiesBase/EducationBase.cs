@@ -5,7 +5,7 @@ namespace Domain.EntitiesBase
     public abstract class EducationBase
     {
         [Key]
-        public Guid Id { get; set; }
+        public int Id { get; set; }
 
         [Required]
         [MaxLength(100)]
@@ -13,7 +13,7 @@ namespace Domain.EntitiesBase
 
         protected EducationBase() { }
 
-        protected EducationBase(Guid id, string name)
+        protected EducationBase(int id, string name)
         {
             Id = id;
             Name = name;

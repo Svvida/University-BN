@@ -100,5 +100,31 @@ namespace Infrastructure.Repositories.RepositoriesBase
                 throw new KeyNotFoundException($"{typeof(T).Name} with ID: {id} not found");
             }
         }
+
+        public async Task<T> FindAsync(Func<T, bool> predicate)
+        {
+            return await Task.Run(() => _educations.AsNoTracking().FirstOrDefault(predicate));
+        }
+
+        public async Task<IEnumerable<T>> FindAllAsync(Func<T, bool> predicate)
+        {
+            return await Task.Run(() => _educations.AsNoTracking().Where(predicate).ToList());
+        }
+
+        public async Task<bool> ExistsAsync(Func<T, bool> predicate)
+        {
+            return await Task.Run(() => _educations.AsNoTracking().Any(predicate));
+        }
+
+        public async Task AddRangeAsync(IEnumerable<T> entities)
+        {
+            if(entities is null || !entities.Any())
+            {
+                throw new ArgumentNullException(nameof(entities), "Entities cannot be null or empty");
+            }
+
+            await _educations.AddRangeAsync(entities);
+            await _context.SaveChangesAsync();
+        }
     }
 }

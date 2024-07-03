@@ -21,6 +21,7 @@ namespace Infrastructure.Services
                     var rowCount = worksheet.Dimension.Rows;
                     Logger.Instance.Log($"Processing sheet: {worksheet.Name}, rows: {rowCount}");
 
+                    // Skip header row
                     for (int row = 2; row <= rowCount; row++)
                     {
                         var item = map(worksheet, row);

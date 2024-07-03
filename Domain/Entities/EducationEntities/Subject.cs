@@ -9,6 +9,6 @@ namespace Domain.Entities.EducationEntities
 
         public Subject() { }
 
-        public Subject(Guid id, string name) : base(id, name) { }
+        public Subject(int id, string name) : base(id, name) { }
     }
 }

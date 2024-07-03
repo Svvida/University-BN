@@ -7,14 +7,14 @@ namespace Domain.Entities.EducationEntities
     public class DegreePath : EducationBase
     {
         [Required]
-        public Guid DegreeCourseId { get; set; }
+        public int DegreeCourseId { get; set; }
         public DegreeCourse? DegreeCourse { get; set; }
         public ICollection<Module> Modules { get; set; } = new List<Module>();
         public ICollection<StudentDegreePath> StudentDegreePaths { get; set; } = new List<StudentDegreePath>();
 
         public DegreePath() { }
 
-        public DegreePath(Guid id, string name, Guid degreeCourseId) : base(id, name)
+        public DegreePath(int id, string name, int degreeCourseId) : base(id, name)
         {
             DegreeCourseId = degreeCourseId;
         }

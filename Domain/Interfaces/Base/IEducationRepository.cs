@@ -11,5 +11,13 @@ namespace Domain.Interfaces.InterfacesBase
         Task CreateAsync(T education);
         Task UpdateAsync(T education);
         Task DeleteAsync(Guid id);
+        
+        // Predicate-based methods
+        Task<T> FindAsync(Func<T, bool> predicate);
+        Task<IEnumerable<T>> FindAllAsync(Func<T, bool> predicate);
+        Task<bool> ExistsAsync(Func<T, bool> predicate);
+
+        // AddRangeAsync method
+        Task AddRangeAsync(IEnumerable<T> entities);
     }
 }

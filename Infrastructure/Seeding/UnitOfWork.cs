@@ -1,0 +1,42 @@
+﻿using Domain.Entities.EducationEntities;
+using Domain.Interfaces;
+using Domain.Interfaces.InterfacesBase;
+using Infrastructure.Data;
+using Infrastructure.Repositories.RepositoriesBase;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Infrastructure.Seeding
+{
+    public class UnitOfWork : IUnitOfWork
+    {
+        private readonly UniversityContext _context;
+
+        public UnitOfWork(UniversityContext context)
+        {
+            _context = context;
+            DegreeCourses = new EducationRepository<DegreeCourse>(_context);
+            DegreePaths = new EducationRepository<DegreePath>(_context);
+            Modules = new EducationRepository<Module>(_context);
+            Subjects = new EducationRepository<Subject>(_context);
+        }
+
+        public IEducationRepository<DegreeCourse> DegreeCourses { get; private set; }
+        public IEducationRepository<DegreePath> DegreePaths { get; private set; }
+        public IEducationRepository<Module> Modules { get; private set; }
+        public IEducationRepository<Subject> Subjects { get; private set; }
+
+        public async Task<int> CompleteAsync()
+        {
+            return await _context.SaveChangesAsync();
+        }
+
+        public void Dispose()
+        {
+            _context.Dispose();
+        }
+    }
+}
