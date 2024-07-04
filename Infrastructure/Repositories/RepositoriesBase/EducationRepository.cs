@@ -1,4 +1,5 @@
-﻿using Domain.EntitiesBase;
+﻿using Domain.Entities.EducationEntities;
+using Domain.EntitiesBase;
 using Domain.Enums;
 using Domain.Interfaces.InterfacesBase;
 using Infrastructure.Data;
@@ -124,6 +125,74 @@ namespace Infrastructure.Repositories.RepositoriesBase
             }
 
             await _educations.AddRangeAsync(entities);
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public class ModuleSubjectRepository : IModuleSubjectRepository
+    {
+        private readonly UniversityContext _context;
+        private readonly DbSet<ModuleSubject> _moduleSubjects;
+
+        public ModuleSubjectRepository(UniversityContext context)
+        {
+            _context = context;
+            _moduleSubjects = context.Set<ModuleSubject>();
+        }
+
+        public async Task<ModuleSubject> GetByIdAsync(int moduleId, int subjectId)
+        {
+            return await _moduleSubjects.FindAsync(moduleId, subjectId);
+        }
+
+        public async Task<IEnumerable<ModuleSubject>> GetAllAsync()
+        {
+            return await _moduleSubjects.ToListAsync();
+        }
+
+        public async Task CreateAsync(ModuleSubject moduleSubject)
+        {
+            await _moduleSubjects.AddAsync(moduleSubject);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task AddRangeAsync(IEnumerable<ModuleSubject> moduleSubjects)
+        {
+            await _moduleSubjects.AddRangeAsync(moduleSubjects);
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public class DegreeCourseSubjectRepository : IDegreeCourseSubjectsRepository
+    {
+        private readonly UniversityContext _context;
+        private readonly DbSet<DegreeCourseSubject> _degreeCourseSubjects;
+
+        public DegreeCourseSubjectRepository(UniversityContext context)
+        {
+            _context = context;
+            _degreeCourseSubjects = context.Set<DegreeCourseSubject>();
+        }
+
+        public async Task<DegreeCourseSubject> GetByIdAsync(int degreeCourseId, int subjectId)
+        {
+            return await _degreeCourseSubjects.FindAsync(degreeCourseId, subjectId);
+        }
+
+        public async Task<IEnumerable<DegreeCourseSubject>> GetAllAsync()
+        {
+            return await _degreeCourseSubjects.ToListAsync();
+        }
+
+        public async Task CreateAsync(DegreeCourseSubject degreeCourseSubject)
+        {
+            await _degreeCourseSubjects.AddAsync(degreeCourseSubject);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task AddRangeAsync(IEnumerable<DegreeCourseSubject> degreeCourseSubjects)
+        {
+            await _degreeCourseSubjects.AddRangeAsync(degreeCourseSubjects);
             await _context.SaveChangesAsync();
         }
     }

@@ -1,4 +1,5 @@
-﻿using Domain.EntitiesBase;
+﻿using Domain.Entities.EducationEntities;
+using Domain.EntitiesBase;
 using Domain.Enums;
 
 namespace Domain.Interfaces.InterfacesBase
@@ -19,5 +20,21 @@ namespace Domain.Interfaces.InterfacesBase
 
         // AddRangeAsync method
         Task AddRangeAsync(IEnumerable<T> entities);
+    }
+
+    public interface IModuleSubjectRepository
+    {
+        Task<ModuleSubject> GetByIdAsync(int moduleId, int subjectId);
+        Task<IEnumerable<ModuleSubject>> GetAllAsync();
+        Task CreateAsync(ModuleSubject moduleSubject);
+        Task AddRangeAsync(IEnumerable<ModuleSubject> moduleSubjects);
+    }
+
+    public interface IDegreeCourseSubjectsRepository
+    {
+        Task<DegreeCourseSubject> GetByIdAsync(int degreeCourseId, int subjectId);
+        Task<IEnumerable<DegreeCourseSubject>> GetAllAsync();
+        Task CreateAsync(DegreeCourseSubject degreeCourseSubject);
+        Task AddRangeAsync(IEnumerable<DegreeCourseSubject> degreeCourseSubjects);
     }
 }

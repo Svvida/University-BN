@@ -11,7 +11,6 @@ namespace Domain.Entities.EducationEntities
         public DegreePath? Path { get; set; }
         public ICollection<ModuleSubject> ModuleSubjects { get; set; } = new List<ModuleSubject>();
         public ICollection<StudentModule> StudentModules { get; set; } = new List<StudentModule>();
-        public ICollection<Subject> Subjects { get; set; } = new List<Subject>();
 
         public Module() { }
 

@@ -8,14 +8,14 @@ namespace Domain.Entities.StudentEntities
         [Required]
         public Guid StudentId { get; set; }
         [Required]
-        public Guid ModuleId { get; set; }
+        public int ModuleId { get; set; }
 
         public Student? Student { get; set; }
         public Module? Module { get; set; }
 
         public StudentModule() { }
 
-        public StudentModule(Guid studentId, Guid moduleId)
+        public StudentModule(Guid studentId, int moduleId)
         {
             StudentId = studentId;
             ModuleId = moduleId;

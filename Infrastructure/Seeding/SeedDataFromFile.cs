@@ -25,10 +25,33 @@ namespace Infrastructure.Seeding
 
         public async Task InitailizeAsync(string excelFilePath)
         {
+            var sheetData = _excelService.ReadFromExcel<(string Subject, string Module)>(excelFilePath, (worksheet, row) =>
+            {
+                return (
+                Subject: worksheet.Cells[row, 1].Text,
+                Module: worksheet.Cells[row, 2].Text);
+            });
 
+            Logger.Instance.Log($"Number of sheets: {sheetData.Count()}");
+
+            var degreeCourseName = Path.GetFileNameWithoutExtension(excelFilePath);
+            Logger.Instance.Log($"Created DegreeCourse: {degreeCourseName}");
+
+            var degreeCourse = await EnsureDegreeCourseAsync(degreeCourseName);
+
+            foreach(var sheet in sheetData)
+            {
+                var degreePathName = sheet.Key;
+                var data = sheet.Value;
+
+                Logger.Instance.Log($"Degree path: {degreePathName}");
+
+                var degreePath = await EnsureDegreePathAsync(degreeCourse, degreePathName);
+                await ProcessSheetDataAsync(degreeCourse, degreePath, data);
+            }
         }
 
-        private async Task<DegreeCourse> EnsureDegreeCourse(string degreeCourseName)
+        private async Task<DegreeCourse> EnsureDegreeCourseAsync(string degreeCourseName)
         {
             var degreeCourse = await _unitOfWork.DegreeCourses.FindAsync(dc => dc.Name == degreeCourseName);
             if (degreeCourse is null)
@@ -41,7 +64,7 @@ namespace Infrastructure.Seeding
             return degreeCourse;
         }
 
-        private async Task<DegreePath> EnsureDegreePath(DegreeCourse degreeCourse, string degreePathName)
+        private async Task<DegreePath> EnsureDegreePathAsync(DegreeCourse degreeCourse, string degreePathName)
         {
             var degreePath = await _unitOfWork.DegreePaths.FindAsync(dp => dp.Name == degreePathName && dp.DegreeCourseId == degreeCourse.Id);
             if(degreePath is null)
@@ -94,7 +117,7 @@ namespace Infrastructure.Seeding
 
         private async Task AddToDegreeCourseSubjectAsync(DegreeCourse degreeCourse, Subject subject, List<DegreeCourseSubject> degreeCourseSubjects)
         {
-            if (!(await _unitOfWork.DegreeCourses.ExistsAsync(dcs => dcs.Id == degreeCourse.Id && dcs.Subjects.Any(s => s.Id == subject.Id))) &&
+            if (!(await _unitOfWork.DegreeCourses.ExistsAsync(dcs => dcs.Id == degreeCourse.Id && dcs.DegreeCourseSubjects.Any(dcs => dcs.SubjectId == subject.Id))) &&
                 !degreeCourseSubjects.Any(dcs => dcs.DegreeCourseId == degreeCourse.Id && dcs.SubjectId == subject.Id))
             {
                 degreeCourseSubjects.Add(new DegreeCourseSubject
@@ -112,7 +135,7 @@ namespace Infrastructure.Seeding
                 return;
             }
 
-            if(!(await _unitOfWork.Modules.ExistsAsync(ms => ms.Id == module.Id && ms.Subjects.Any(s => s.Id == subject.Id))) &&
+            if(!(await _unitOfWork.Modules.ExistsAsync(ms => ms.Id == module.Id && ms.ModuleSubjects.Any(ms => ms.SubjectId == subject.Id))) &&
                 !moduleSubjects.Any(ms => ms.ModuleId == module.Id && ms.SubjectId == subject.Id))
             {
                 moduleSubjects.Add(new ModuleSubject
@@ -154,7 +177,9 @@ namespace Infrastructure.Seeding
             await _unitOfWork.Modules.AddRangeAsync(modules.DistinctBy(m => m.Name));
             await _unitOfWork.CompleteAsync();
 
-            await _unitOfWork.ModulesSubjects
+            await _unitOfWork.ModuleSubjects.AddRangeAsync(moduleSubjects.DistinctBy(ms => new { ms.ModuleId, ms.SubjectId }));
+            await _unitOfWork.DegreeCourseSubjects.AddRangeAsync(degreeCourseSubjects.DistinctBy(dcs => new {dcs.DegreeCourseId, dcs.SubjectId }));
+            await _unitOfWork.CompleteAsync();
         }
     }
 }

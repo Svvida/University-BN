@@ -9,6 +9,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Domain.Enums;
+using System.Diagnostics;
+using Utilities;
 
 namespace Infrastructure.Seeding.EmployeeSeeding
 {
@@ -16,6 +18,7 @@ namespace Infrastructure.Seeding.EmployeeSeeding
     {
         public static List<Employee> GenerateEmployees(List<UserAccount> accounts, UniversityContext context)
         {
+
             var addresses = GenerateAddresses(100);
             var consents = GenerateConsents(100);
 
@@ -32,11 +35,13 @@ namespace Infrastructure.Seeding.EmployeeSeeding
                 .RuleFor(s => s.ContactEmail, f => f.Internet.Email())
                 .RuleFor(s => s.ContactPhone, f => f.Phone.PhoneNumberFormat())
                 .RuleFor(s => s.DateOfAddmission, f => f.Date.Past(3))
-                .RuleFor(s => s.AddressId, (f, s) => addresses[f.IndexFaker].Id)
-                .RuleFor(s => s.AccountId, (f, s) => accounts[f.IndexFaker].Id)
-                .RuleFor(s => s.ConsentId, (f, s) => consents[f.IndexFaker].Id);
+                .RuleFor(s => s.AddressId, (f, s) => addresses[f.IndexFaker & addresses.Count].Id)
+                .RuleFor(s => s.AccountId, (f, s) => accounts[f.IndexFaker & accounts.Count].Id)
+                .RuleFor(s => s.ConsentId, (f, s) => consents[f.IndexFaker & consents.Count].Id);
 
-            return employees.Generate(accounts.Count);
+            var generatedEmployees = employees.Generate(accounts.Count);
+
+            return generatedEmployees;
         }
         private static List<EmployeeAddress> GenerateAddresses(int count)
         {

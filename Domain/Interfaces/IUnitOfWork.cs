@@ -14,6 +14,8 @@ namespace Domain.Interfaces
         IEducationRepository<DegreePath> DegreePaths { get; }
         IEducationRepository<Module> Modules { get; }
         IEducationRepository<Subject> Subjects { get; }
+        IModuleSubjectRepository ModuleSubjects { get; }
+        IDegreeCourseSubjectsRepository DegreeCourseSubjects { get; }
         Task<int> CompleteAsync();
     }
 }
