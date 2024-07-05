@@ -23,7 +23,7 @@ namespace Infrastructure.Seeding
             _excelService = new ExcelService();
         }
 
-        public async Task InitailizeAsync(string excelFilePath)
+        public async Task InitializeAsync(string excelFilePath)
         {
             var sheetData = _excelService.ReadFromExcel<(string Subject, string Module)>(excelFilePath, (worksheet, row) =>
             {
@@ -35,7 +35,7 @@ namespace Infrastructure.Seeding
             Logger.Instance.Log($"Number of sheets: {sheetData.Count()}");
 
             var degreeCourseName = Path.GetFileNameWithoutExtension(excelFilePath);
-            Logger.Instance.Log($"Created DegreeCourse: {degreeCourseName}");
+            Logger.Instance.Log($"Processing {degreeCourseName}");
 
             var degreeCourse = await EnsureDegreeCourseAsync(degreeCourseName);
 
@@ -81,44 +81,50 @@ namespace Infrastructure.Seeding
             return degreePath;
         }
 
-        private async Task<Module> EnsureModuleAsync(DegreePath degreePath, string moduleName, List<Module> modules)
+        private async Task EnsureModuleAsync(DegreePath degreePath, string moduleName, List<Module> modules, HashSet<string> existingModules)
         {
             if(moduleName == "Kierunkowy" || string.IsNullOrEmpty(moduleName))
             {
-                return null;
+                return;
             }
 
-            var module = await _unitOfWork.Modules.FindAsync(m => m.Name == moduleName && m.DegreePathId == degreePath.Id);
-            if(module is null)
+            if (!existingModules.Contains(moduleName))
             {
-                var Module = new Module
+                var exists  = await _unitOfWork.Modules.ExistsAsync(m => m.Name == moduleName && m.DegreePathId == degreePath.Id);
+                if (!exists)
                 {
-                    Name = moduleName,
-                    DegreePathId = degreePath.Id
-                };
-                modules.Add(Module);
+                    var module = new Module
+                    {
+                        Name = moduleName,
+                        DegreePathId = degreePath.Id
+                    };
+                    modules.Add(module);
+                }
+                existingModules.Add(moduleName);
             }
-            return module;
         }
 
-        private async Task<Subject> EnsureSubjectAsync(string subjectName, List<Subject> subjects)
+        private async Task EnsureSubjectAsync(string subjectName, List<Subject> subjects, HashSet<string> existingStudents)
         {
-            var subject = await _unitOfWork.Subjects.FindAsync(s => s.Name == subjectName);
-            if(subject is null)
+            if (!existingStudents.Contains(subjectName))
             {
-                subject = new Subject
+                var exists = await _unitOfWork.Subjects.ExistsAsync(s => s.Name == subjectName);
+                if (!exists)
                 {
-                    Name = subjectName
-                };
-                subjects.Add(subject);
+                    var subject = new Subject
+                    {
+                        Name = subjectName
+                    };
+                    subjects.Add(subject);
+                }
+                existingStudents.Add(subjectName);
             }
-            return subject;
         }
 
         private async Task AddToDegreeCourseSubjectAsync(DegreeCourse degreeCourse, Subject subject, List<DegreeCourseSubject> degreeCourseSubjects)
         {
-            if (!(await _unitOfWork.DegreeCourses.ExistsAsync(dcs => dcs.Id == degreeCourse.Id && dcs.DegreeCourseSubjects.Any(dcs => dcs.SubjectId == subject.Id))) &&
-                !degreeCourseSubjects.Any(dcs => dcs.DegreeCourseId == degreeCourse.Id && dcs.SubjectId == subject.Id))
+            var exists = await _unitOfWork.DegreeCourseSubjects.ExistsAsync(dcs => dcs.DegreeCourseId == degreeCourse.Id && dcs.SubjectId == subject.Id);
+            if(!exists)
             {
                 degreeCourseSubjects.Add(new DegreeCourseSubject
                 {
@@ -135,8 +141,8 @@ namespace Infrastructure.Seeding
                 return;
             }
 
-            if(!(await _unitOfWork.Modules.ExistsAsync(ms => ms.Id == module.Id && ms.ModuleSubjects.Any(ms => ms.SubjectId == subject.Id))) &&
-                !moduleSubjects.Any(ms => ms.ModuleId == module.Id && ms.SubjectId == subject.Id))
+            var exists = await _unitOfWork.ModuleSubjects.ExistsAsync(ms => ms.ModuleId == module.Id && ms.SubjectId == subject.Id);
+            if(!exists)
             {
                 moduleSubjects.Add(new ModuleSubject
                 {
@@ -146,12 +152,15 @@ namespace Infrastructure.Seeding
             }
         }
 
-        private async Task ProcessSheetDataAsync(DegreeCourse degreeCourse, DegreePath degreePath, List<(string Course, string Module)> data)
+        private async Task ProcessSheetDataAsync(DegreeCourse degreeCourse, DegreePath degreePath, List<(string Subject, string Module)> data)
         {
             var subjects = new List<Subject>();
             var modules = new List<Module>();
             var moduleSubjects = new List<ModuleSubject>();
             var degreeCourseSubjects = new List<DegreeCourseSubject>();
+
+            var existingSubjects = new HashSet<string>();
+            var existingModules = new HashSet<string>();
 
             foreach(var (subjectName, moduleName) in data)
             {
@@ -160,7 +169,12 @@ namespace Infrastructure.Seeding
                     continue;
                 }
 
-                var subject = await EnsureSubjectAsync(subjectName, subjects);
+                await EnsureSubjectAsync(subjectName, subjects, existingSubjects);
+                var subject = subjects.FirstOrDefault(s => s.Name == subjectName);
+                if(subject is null)
+                {
+                    throw new InvalidOperationException("Subject should have been ensured to exists");
+                }
 
                 if(moduleName == "Kierunkowy")
                 {
@@ -168,7 +182,12 @@ namespace Infrastructure.Seeding
                 }
                 else
                 {
-                    var module = await EnsureModuleAsync(degreePath, moduleName, modules);
+                    await EnsureModuleAsync(degreePath, moduleName, modules, existingModules);
+                    var module = modules.FirstOrDefault(m => m.Name == moduleName);
+                    if(module is null)
+                    {
+                        throw new InvalidOperationException("Module should have been ensured to exists");
+                    }
                     await AddToModuleSubjectAsync(module, subject, moduleSubjects);
                 }
             }

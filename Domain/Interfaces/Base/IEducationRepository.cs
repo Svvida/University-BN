@@ -28,6 +28,10 @@ namespace Domain.Interfaces.InterfacesBase
         Task<IEnumerable<ModuleSubject>> GetAllAsync();
         Task CreateAsync(ModuleSubject moduleSubject);
         Task AddRangeAsync(IEnumerable<ModuleSubject> moduleSubjects);
+        // Predicate-based methods
+        Task<ModuleSubject> FindAsync(Func<ModuleSubject, bool> predicate);
+        Task<IEnumerable<ModuleSubject>> FindAllAsync(Func<ModuleSubject, bool> predicate);
+        Task<bool> ExistsAsync(Func<ModuleSubject, bool> predicate);
     }
 
     public interface IDegreeCourseSubjectsRepository
@@ -36,5 +40,9 @@ namespace Domain.Interfaces.InterfacesBase
         Task<IEnumerable<DegreeCourseSubject>> GetAllAsync();
         Task CreateAsync(DegreeCourseSubject degreeCourseSubject);
         Task AddRangeAsync(IEnumerable<DegreeCourseSubject> degreeCourseSubjects);
+        // Predicate-based methods
+        Task<DegreeCourseSubject> FindAsync(Func<DegreeCourseSubject, bool> predicate);
+        Task<IEnumerable<DegreeCourseSubject>> FindAllAsync(Func<DegreeCourseSubject, bool> predicate);
+        Task<bool> ExistsAsync(Func<DegreeCourseSubject, bool> predicate);
     }
 }

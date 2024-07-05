@@ -1,8 +1,11 @@
 
 
+using Domain.Interfaces;
 using Domain.Interfaces.InterfacesBase;
+using Domain.Interfaces.Repositories;
 using Infrastructure.Data;
 using Infrastructure.Repositories.RepositoriesBase;
+using Infrastructure.Repositories;
 using Infrastructure.Seeding;
 using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +16,7 @@ namespace RestApi
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +35,14 @@ namespace RestApi
 
             // Register Repositories
             builder.Services.AddScoped(typeof(IAddressRepository<>), typeof(AddressRepository<>));
+            builder.Services.AddScoped(typeof(IConsentRepository<>), typeof(ConsentRepository<>));
+            builder.Services.AddScoped(typeof(IEducationRepository<>), typeof(EducationRepository<>));
+            builder.Services.AddScoped(typeof(IPersonRepository<>), typeof(PersonRepository<>));
+            builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+            builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+
+            // Register Unit Of Work
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // Register ExcelService
             builder.Services.AddSingleton<ExcelService>();
@@ -52,9 +63,11 @@ namespace RestApi
                 try
                 {
                     var excelFilePaths = configuration.GetSection("SeedData:ExcelFilePaths").Get<List<string>>();
+                    var seedDataFromFile = services.GetRequiredService<SeedDataFromFile>();
+
                     foreach (var filePath in excelFilePaths)
                     {
-                        SeedDataFromFile.Initialize(services, filePath);
+                        await seedDataFromFile.InitializeAsync(filePath);
                     }
 
                     BogusSeeder.Initialize(services);
@@ -73,10 +86,7 @@ namespace RestApi
             }
 
             app.UseHttpsRedirection();
-
             app.UseAuthorization();
-
-
             app.MapControllers();
 
             app.Run();

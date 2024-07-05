@@ -161,6 +161,21 @@ namespace Infrastructure.Repositories.RepositoriesBase
             await _moduleSubjects.AddRangeAsync(moduleSubjects);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<ModuleSubject> FindAsync(Func<ModuleSubject, bool> predicate)
+        {
+            return await Task.Run(() => _moduleSubjects.AsNoTracking().FirstOrDefault(predicate));
+        }
+
+        public async Task<IEnumerable<ModuleSubject>> FindAllAsync(Func<ModuleSubject, bool> predicate)
+        {
+            return await Task.Run(() => _moduleSubjects.AsNoTracking().Where(predicate).ToList());
+        }
+
+        public async Task<bool> ExistsAsync(Func<ModuleSubject, bool> predicate)
+        {
+            return await Task.Run(() => _moduleSubjects.AsNoTracking().Any(predicate));
+        }
     }
 
     public class DegreeCourseSubjectRepository : IDegreeCourseSubjectsRepository
@@ -194,6 +209,21 @@ namespace Infrastructure.Repositories.RepositoriesBase
         {
             await _degreeCourseSubjects.AddRangeAsync(degreeCourseSubjects);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<DegreeCourseSubject> FindAsync(Func<DegreeCourseSubject, bool> predicate)
+        {
+            return await Task.Run(() => _degreeCourseSubjects.AsNoTracking().FirstOrDefault(predicate));
+        }
+
+        public async Task<IEnumerable<DegreeCourseSubject>> FindAllAsync(Func<DegreeCourseSubject, bool> predicate)
+        {
+            return await Task.Run(() => _degreeCourseSubjects.AsNoTracking().Where(predicate).ToList());
+        }
+
+        public async Task<bool> ExistsAsync(Func<DegreeCourseSubject, bool> predicate)
+        {
+            return await Task.Run(() => _degreeCourseSubjects.AsNoTracking().Any(predicate));
         }
     }
 }
