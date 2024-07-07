@@ -19,8 +19,8 @@ namespace Infrastructure.Seeding.EmployeeSeeding
         public static List<Employee> GenerateEmployees(List<UserAccount> accounts, UniversityContext context)
         {
 
-            var addresses = GenerateAddresses(5000);
-            var consents = GenerateConsents(5000);
+            var addresses = GenerateAddresses(50000);
+            var consents = GenerateConsents(50000);
 
             context.EmployeesAddresses.AddRange(addresses);
             context.EmployeesConsents.AddRange(consents);

@@ -18,7 +18,7 @@ namespace Domain.Entities.AccountEntities
         public string Password { get; set; }
 
         [Required]
-        [MaxLength(100)]
+        [MaxLength(150)]
         [EmailAddress]
         public string Email { get; set; }
 

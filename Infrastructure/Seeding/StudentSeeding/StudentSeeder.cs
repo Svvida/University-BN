@@ -21,8 +21,8 @@ namespace Infrastructure.Seeding.StudentSeeding
         public static List<Student> GenerateStudents(List<UserAccount> accounts, UniversityContext context)
         {
 
-            var addresses = GenerateAddresses(5000);
-            var consents = GenerateConsents(5000);
+            var addresses = GenerateAddresses(50000);
+            var consents = GenerateConsents(50000);
 
             context.StudentsAddresses.AddRange(addresses);
             context.StudentsConsents.AddRange(consents);
@@ -47,12 +47,11 @@ namespace Infrastructure.Seeding.StudentSeeding
             context.SaveChanges();
 
             EnrollStudentsInCourses(context, generatedStudents);
-            context.SaveChanges();
 
             EnrollStudentsInPaths(context, generatedStudents);
-            context.SaveChanges();
 
             EnrollStudentsInModlues(context, generatedStudents);
+
             context.SaveChanges();
 
             return generatedStudents;

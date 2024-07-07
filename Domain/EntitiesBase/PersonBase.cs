@@ -23,12 +23,12 @@ namespace Domain.EntitiesBase
         public Gender Gender { get; set; } = 0;
 
         [Required]
-        [MaxLength(100)]
+        [MaxLength(150)]
         [EmailAddress]
         public string ContactEmail { get; set; }
         [Required]
 
-        [MaxLength(15)]
+        [MaxLength(20)]
         public string ContactPhone { get; set; }
 
         [Required]
