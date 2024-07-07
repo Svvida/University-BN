@@ -21,8 +21,8 @@ namespace Infrastructure.Seeding.StudentSeeding
         public static List<Student> GenerateStudents(List<UserAccount> accounts, UniversityContext context)
         {
 
-            var addresses = GenerateAddresses(100);
-            var consents = GenerateConsents(100);
+            var addresses = GenerateAddresses(5000);
+            var consents = GenerateConsents(5000);
 
             context.StudentsAddresses.AddRange(addresses);
             context.StudentsConsents.AddRange(consents);
@@ -67,7 +67,7 @@ namespace Infrastructure.Seeding.StudentSeeding
                 .RuleFor(s => s.PostalCode, f => f.Address.ZipCode())
                 .RuleFor(s => s.Street, f => f.Address.StreetAddress())
                 .RuleFor(s => s.BuildingNumber, f => f.Address.BuildingNumber())
-                .RuleFor(s => s.ApartmentNumber, f => f.Random.Bool() ? f.Address.SecondaryAddress() : null);
+                .RuleFor(s => s.ApartmentNumber, f => f.Random.Bool() ? f.Address.BuildingNumber() : null);
 
             return addresses.Generate(count);
         }

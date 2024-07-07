@@ -19,8 +19,8 @@ namespace Infrastructure.Seeding.EmployeeSeeding
         public static List<Employee> GenerateEmployees(List<UserAccount> accounts, UniversityContext context)
         {
 
-            var addresses = GenerateAddresses(100);
-            var consents = GenerateConsents(100);
+            var addresses = GenerateAddresses(5000);
+            var consents = GenerateConsents(5000);
 
             context.EmployeesAddresses.AddRange(addresses);
             context.EmployeesConsents.AddRange(consents);
@@ -52,7 +52,7 @@ namespace Infrastructure.Seeding.EmployeeSeeding
                 .RuleFor(s => s.PostalCode, f => f.Address.ZipCode())
                 .RuleFor(s => s.Street, f => f.Address.StreetAddress())
                 .RuleFor(s => s.BuildingNumber, f => f.Address.BuildingNumber())
-                .RuleFor(s => s.ApartmentNumber, f => f.Random.Bool() ? f.Address.SecondaryAddress() : null);
+                .RuleFor(s => s.ApartmentNumber, f => f.Random.Bool() ? f.Address.BuildingNumber() : null);
 
             return addresses.Generate(count);
         }

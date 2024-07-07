@@ -4,7 +4,7 @@ using Domain.Interfaces.Repositories;
 
 namespace Application.Services
 {
-    public class AccountService : IAccountService
+    public class AccountService
     {
         private readonly MappingProfile _mapper;
         private readonly IAccountRepository _accountRepository;

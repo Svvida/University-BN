@@ -21,7 +21,7 @@ namespace Infrastructure.Seeding
 
                 // Generate unique accounts
                 StopwatchService.Instance.LogElapsed("Starting account generation", "seconds");
-                var accounts = AccountSeeder.GenerateAccounts(200);
+                var accounts = AccountSeeder.GenerateAccounts(10000);
                 StopwatchService.Instance.LogElapsed($"Generated {accounts.Count} accounts", "seconds");
 
                 // Save accounts
@@ -31,7 +31,7 @@ namespace Infrastructure.Seeding
 
                 // Generate Students
                 StopwatchService.Instance.LogElapsed("Starting student generation", "seconds");
-                var students = StudentSeeder.GenerateStudents(accounts.Take(100).ToList(), context);
+                var students = StudentSeeder.GenerateStudents(accounts.Take(5000).ToList(), context);
                 StopwatchService.Instance.LogElapsed($"Generated {students.Count} students", "seconds");
 
                 // Save students
@@ -41,7 +41,7 @@ namespace Infrastructure.Seeding
 
                 // Generate Employees
                 StopwatchService.Instance.LogElapsed("Starting employee generation", "seconds");
-                var employees = EmployeeSeeder.GenerateEmployees(accounts.Skip(100).Take(100).ToList(), context);
+                var employees = EmployeeSeeder.GenerateEmployees(accounts.Skip(5000).Take(5000).ToList(), context);
                 StopwatchService.Instance.LogElapsed($"Generated {employees.Count} employees", "seconds");
 
                 // Save employees

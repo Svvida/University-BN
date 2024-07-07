@@ -56,8 +56,8 @@ namespace Infrastructure.Migrations
 
                     b.Property<string>("Password")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
                     b.HasKey("Id");
 
@@ -81,9 +81,11 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.EducationEntities.DegreeCourse", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -97,11 +99,11 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.EducationEntities.DegreeCourseSubject", b =>
                 {
-                    b.Property<Guid>("DegreeCourseId")
-                        .HasColumnType("char(36)");
+                    b.Property<int>("DegreeCourseId")
+                        .HasColumnType("int");
 
-                    b.Property<Guid>("SubjectId")
-                        .HasColumnType("char(36)");
+                    b.Property<int>("SubjectId")
+                        .HasColumnType("int");
 
                     b.HasKey("DegreeCourseId", "SubjectId");
 
@@ -112,12 +114,14 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.EducationEntities.DegreePath", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
+                        .HasColumnType("int");
 
-                    b.Property<Guid>("DegreeCourseId")
-                        .HasColumnType("char(36)");
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DegreeCourseId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -133,12 +137,14 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.EducationEntities.Module", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
+                        .HasColumnType("int");
 
-                    b.Property<Guid>("DegreePathId")
-                        .HasColumnType("char(36)");
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("DegreePathId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -154,11 +160,11 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.EducationEntities.ModuleSubject", b =>
                 {
-                    b.Property<Guid>("ModuleId")
-                        .HasColumnType("char(36)");
+                    b.Property<int>("ModuleId")
+                        .HasColumnType("int");
 
-                    b.Property<Guid>("SubjectId")
-                        .HasColumnType("char(36)");
+                    b.Property<int>("SubjectId")
+                        .HasColumnType("int");
 
                     b.HasKey("ModuleId", "SubjectId");
 
@@ -169,9 +175,11 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.EducationEntities.Subject", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -248,13 +256,13 @@ namespace Infrastructure.Migrations
                         .HasColumnType("char(36)");
 
                     b.Property<string>("ApartmentNumber")
-                        .HasMaxLength(10)
-                        .HasColumnType("varchar(10)");
+                        .HasMaxLength(5)
+                        .HasColumnType("varchar(5)");
 
                     b.Property<string>("BuildingNumber")
                         .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("varchar(10)");
+                        .HasMaxLength(5)
+                        .HasColumnType("varchar(5)");
 
                     b.Property<string>("City")
                         .IsRequired()
@@ -363,13 +371,13 @@ namespace Infrastructure.Migrations
                         .HasColumnType("char(36)");
 
                     b.Property<string>("ApartmentNumber")
-                        .HasMaxLength(10)
-                        .HasColumnType("varchar(10)");
+                        .HasMaxLength(5)
+                        .HasColumnType("varchar(5)");
 
                     b.Property<string>("BuildingNumber")
                         .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("varchar(10)");
+                        .HasMaxLength(5)
+                        .HasColumnType("varchar(5)");
 
                     b.Property<string>("City")
                         .IsRequired()
@@ -418,8 +426,8 @@ namespace Infrastructure.Migrations
                     b.Property<Guid>("StudentId")
                         .HasColumnType("char(36)");
 
-                    b.Property<Guid>("DegreeCourseId")
-                        .HasColumnType("char(36)");
+                    b.Property<int>("DegreeCourseId")
+                        .HasColumnType("int");
 
                     b.HasKey("StudentId", "DegreeCourseId");
 
@@ -433,8 +441,8 @@ namespace Infrastructure.Migrations
                     b.Property<Guid>("StudentId")
                         .HasColumnType("char(36)");
 
-                    b.Property<Guid>("DegreePathId")
-                        .HasColumnType("char(36)");
+                    b.Property<int>("DegreePathId")
+                        .HasColumnType("int");
 
                     b.HasKey("StudentId", "DegreePathId");
 
@@ -448,8 +456,8 @@ namespace Infrastructure.Migrations
                     b.Property<Guid>("StudentId")
                         .HasColumnType("char(36)");
 
-                    b.Property<Guid>("ModuleId")
-                        .HasColumnType("char(36)");
+                    b.Property<int>("ModuleId")
+                        .HasColumnType("int");
 
                     b.HasKey("StudentId", "ModuleId");
 

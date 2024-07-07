@@ -16,7 +16,7 @@ namespace RestApi
 {
     public class Program
     {
-        public static async void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -43,6 +43,7 @@ namespace RestApi
 
             // Register Unit Of Work
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped<SeedDataFromFile>();
 
             // Register ExcelService
             builder.Services.AddSingleton<ExcelService>();
@@ -65,10 +66,14 @@ namespace RestApi
                     var excelFilePaths = configuration.GetSection("SeedData:ExcelFilePaths").Get<List<string>>();
                     var seedDataFromFile = services.GetRequiredService<SeedDataFromFile>();
 
-                    foreach (var filePath in excelFilePaths)
-                    {
-                        await seedDataFromFile.InitializeAsync(filePath);
-                    }
+                    //StopwatchService.Instance.Start();
+                    //Logger.Instance.Log("Seeding database from files");
+                    //foreach (var filePath in excelFilePaths)
+                    //{
+                    //    await seedDataFromFile.InitializeAsync(filePath);
+                    //}
+                    //StopwatchService.Instance.Stop();
+                    //StopwatchService.Instance.LogElapsed("Seeding database from file completed", "seconds");
 
                     BogusSeeder.Initialize(services);
                 }

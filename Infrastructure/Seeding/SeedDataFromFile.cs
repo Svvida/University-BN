@@ -25,6 +25,8 @@ namespace Infrastructure.Seeding
 
         public async Task InitializeAsync(string excelFilePath)
         {
+            Logger.Instance.Log($"Seeding database from file: {excelFilePath}");
+
             var sheetData = _excelService.ReadFromExcel<(string Subject, string Module)>(excelFilePath, (worksheet, row) =>
             {
                 return (
@@ -35,7 +37,7 @@ namespace Infrastructure.Seeding
             Logger.Instance.Log($"Number of sheets: {sheetData.Count()}");
 
             var degreeCourseName = Path.GetFileNameWithoutExtension(excelFilePath);
-            Logger.Instance.Log($"Processing {degreeCourseName}");
+            //Logger.Instance.Log($"Processing {degreeCourseName}");
 
             var degreeCourse = await EnsureDegreeCourseAsync(degreeCourseName);
 
@@ -44,7 +46,7 @@ namespace Infrastructure.Seeding
                 var degreePathName = sheet.Key;
                 var data = sheet.Value;
 
-                Logger.Instance.Log($"Degree path: {degreePathName}");
+                //Logger.Instance.Log($"Degree path: {degreePathName}");
 
                 var degreePath = await EnsureDegreePathAsync(degreeCourse, degreePathName);
                 await ProcessSheetDataAsync(degreeCourse, degreePath, data);
@@ -59,7 +61,7 @@ namespace Infrastructure.Seeding
                 degreeCourse = new DegreeCourse { Name = degreeCourseName };
                 await _unitOfWork.DegreeCourses.CreateAsync(degreeCourse);
                 await _unitOfWork.CompleteAsync();
-                Logger.Instance.Log($"Created new DegreeCourse: {degreeCourse.Name}");
+                //Logger.Instance.Log($"Created new DegreeCourse: {degreeCourse.Name}");
             }
             return degreeCourse;
         }
@@ -76,49 +78,39 @@ namespace Infrastructure.Seeding
                 };
                 await _unitOfWork.DegreePaths.CreateAsync(degreePath);
                 await _unitOfWork.CompleteAsync();
-                Logger.Instance.Log($"Created new DegreePath: {degreePath.Name}");
+                //Logger.Instance.Log($"Created new DegreePath: {degreePath.Name}");
             }
             return degreePath;
         }
 
-        private async Task EnsureModuleAsync(DegreePath degreePath, string moduleName, List<Module> modules, HashSet<string> existingModules)
+        private async Task<Module> EnsureModuleAsync(DegreePath degreePath, string moduleName)
         {
-            if(moduleName == "Kierunkowy" || string.IsNullOrEmpty(moduleName))
+            var module = await _unitOfWork.Modules.FindAsync(m => m.Name == moduleName && m.DegreePathId == degreePath.Id);
+            if(module is null)
             {
-                return;
-            }
-
-            if (!existingModules.Contains(moduleName))
-            {
-                var exists  = await _unitOfWork.Modules.ExistsAsync(m => m.Name == moduleName && m.DegreePathId == degreePath.Id);
-                if (!exists)
+                module = new Module
                 {
-                    var module = new Module
-                    {
-                        Name = moduleName,
-                        DegreePathId = degreePath.Id
-                    };
-                    modules.Add(module);
-                }
-                existingModules.Add(moduleName);
+                    Name = moduleName,
+                    DegreePathId = degreePath.Id
+                };
+                await _unitOfWork.Modules.CreateAsync(module);
+                await _unitOfWork.CompleteAsync();
+                //Logger.Instance.Log($"Created new Module: {module.Name}");
             }
+            return module;
         }
 
-        private async Task EnsureSubjectAsync(string subjectName, List<Subject> subjects, HashSet<string> existingStudents)
+        private async Task<Subject> EnsureSubjectAsync(string subjectName)
         {
-            if (!existingStudents.Contains(subjectName))
+            var subject = await _unitOfWork.Subjects.FindAsync(s => s.Name == subjectName);
+            if(subject is null)
             {
-                var exists = await _unitOfWork.Subjects.ExistsAsync(s => s.Name == subjectName);
-                if (!exists)
-                {
-                    var subject = new Subject
-                    {
-                        Name = subjectName
-                    };
-                    subjects.Add(subject);
-                }
-                existingStudents.Add(subjectName);
+                subject = new Subject { Name = subjectName };
+                await _unitOfWork.Subjects.CreateAsync(subject);
+                await _unitOfWork.CompleteAsync();
+                //Logger.Instance.Log($"Created new Subject: {subject.Name}");
             }
+            return subject;
         }
 
         private async Task AddToDegreeCourseSubjectAsync(DegreeCourse degreeCourse, Subject subject, List<DegreeCourseSubject> degreeCourseSubjects)
@@ -136,10 +128,6 @@ namespace Infrastructure.Seeding
 
         private async Task AddToModuleSubjectAsync(Module module, Subject subject, List<ModuleSubject> moduleSubjects)
         {
-            if(module is null)
-            {
-                return;
-            }
 
             var exists = await _unitOfWork.ModuleSubjects.ExistsAsync(ms => ms.ModuleId == module.Id && ms.SubjectId == subject.Id);
             if(!exists)
@@ -154,27 +142,20 @@ namespace Infrastructure.Seeding
 
         private async Task ProcessSheetDataAsync(DegreeCourse degreeCourse, DegreePath degreePath, List<(string Subject, string Module)> data)
         {
-            var subjects = new List<Subject>();
-            var modules = new List<Module>();
             var moduleSubjects = new List<ModuleSubject>();
             var degreeCourseSubjects = new List<DegreeCourseSubject>();
 
-            var existingSubjects = new HashSet<string>();
-            var existingModules = new HashSet<string>();
-
             foreach(var (subjectName, moduleName) in data)
             {
-                if (string.IsNullOrEmpty(subjectName)||string.IsNullOrEmpty(moduleName))
+                if (subjectName.Contains("Razem Semestr")||string.IsNullOrEmpty(moduleName))
                 {
+                    //Logger.Instance.Log($"Skipping subject {subjectName}, Module {moduleName}");
                     continue;
                 }
-
-                await EnsureSubjectAsync(subjectName, subjects, existingSubjects);
-                var subject = subjects.FirstOrDefault(s => s.Name == subjectName);
-                if(subject is null)
-                {
-                    throw new InvalidOperationException("Subject should have been ensured to exists");
-                }
+                //Logger.Instance.Log($"Subject before ensuring: {subjectName}, Module: {moduleName}");
+               
+                var subject = await EnsureSubjectAsync(subjectName);
+                //Logger.Instance.Log($"Subject after fetching: {subject.Name}, {subject.Id}");
 
                 if(moduleName == "Kierunkowy")
                 {
@@ -182,22 +163,21 @@ namespace Infrastructure.Seeding
                 }
                 else
                 {
-                    await EnsureModuleAsync(degreePath, moduleName, modules, existingModules);
-                    var module = modules.FirstOrDefault(m => m.Name == moduleName);
-                    if(module is null)
-                    {
-                        throw new InvalidOperationException("Module should have been ensured to exists");
-                    }
+                    var module = await EnsureModuleAsync(degreePath, moduleName);
+
                     await AddToModuleSubjectAsync(module, subject, moduleSubjects);
                 }
             }
 
-            await _unitOfWork.Subjects.AddRangeAsync(subjects.DistinctBy(s => s.Name));
-            await _unitOfWork.Modules.AddRangeAsync(modules.DistinctBy(m => m.Name));
-            await _unitOfWork.CompleteAsync();
+            if (moduleSubjects.Any())
+            {
+                await _unitOfWork.ModuleSubjects.AddRangeAsync(moduleSubjects.DistinctBy(ms => new { ms.ModuleId, ms.SubjectId }));
+            }
+            if(degreeCourseSubjects.Any())
+            {
+                await _unitOfWork.DegreeCourseSubjects.AddRangeAsync(degreeCourseSubjects.DistinctBy(dcs => new { dcs.DegreeCourseId, dcs.SubjectId }));
 
-            await _unitOfWork.ModuleSubjects.AddRangeAsync(moduleSubjects.DistinctBy(ms => new { ms.ModuleId, ms.SubjectId }));
-            await _unitOfWork.DegreeCourseSubjects.AddRangeAsync(degreeCourseSubjects.DistinctBy(dcs => new {dcs.DegreeCourseId, dcs.SubjectId }));
+            }
             await _unitOfWork.CompleteAsync();
         }
     }
