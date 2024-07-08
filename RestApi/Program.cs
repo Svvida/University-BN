@@ -12,6 +12,7 @@ using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
 using Utilities;
+using Infrastructure.Seeding.Bogus;
 
 namespace RestApi
 {
@@ -76,17 +77,19 @@ namespace RestApi
                 var services = scope.ServiceProvider;
                 try
                 {
+                    RoleSeeding.Initialize(services);
+
                     var excelFilePaths = configuration.GetSection("SeedData:ExcelFilePaths").Get<List<string>>();
                     var seedDataFromFile = services.GetRequiredService<SeedDataFromFile>();
 
-                    //StopwatchService.Instance.Start();
-                    //Logger.Instance.Log("Seeding database from files");
-                    //foreach (var filePath in excelFilePaths)
-                    //{
-                    //    await seedDataFromFile.InitializeAsync(filePath);
-                    //}
-                    //StopwatchService.Instance.Stop();
-                    //StopwatchService.Instance.LogElapsed("Seeding database from file completed", "seconds");
+                    StopwatchService.Instance.Start();
+                    Logger.Instance.Log("Seeding database from files");
+                    foreach (var filePath in excelFilePaths)
+                    {
+                        await seedDataFromFile.InitializeAsync(filePath);
+                    }
+                    StopwatchService.Instance.Stop();
+                    StopwatchService.Instance.LogElapsed("Seeding database from file completed", "seconds");
 
                     BogusSeeder.Initialize(services);
                 }

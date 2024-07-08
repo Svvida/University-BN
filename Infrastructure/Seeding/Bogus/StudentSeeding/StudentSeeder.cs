@@ -14,15 +14,15 @@ using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using Utilities;
 
-namespace Infrastructure.Seeding.StudentSeeding
+namespace Infrastructure.Seeding.Bogus.StudentSeeding
 {
     public static class StudentSeeder
     {
         public static List<Student> GenerateStudents(List<UserAccount> accounts, UniversityContext context)
         {
 
-            var addresses = GenerateAddresses(50000);
-            var consents = GenerateConsents(50000);
+            var addresses = GenerateAddresses(SeedingConstants.StudentSeedCount);
+            var consents = GenerateConsents(SeedingConstants.StudentSeedCount);
 
             context.StudentsAddresses.AddRange(addresses);
             context.StudentsConsents.AddRange(consents);
@@ -87,7 +87,7 @@ namespace Infrastructure.Seeding.StudentSeeding
 
             var random = new Random();
 
-            foreach(var student in students)
+            foreach (var student in students)
             {
                 var selectedCourse = degreeCourses[random.Next(degreeCourses.Count)];
                 var studentDegreeCourse = new StudentDegreeCourse
@@ -104,10 +104,10 @@ namespace Infrastructure.Seeding.StudentSeeding
         {
             var random = new Random();
 
-            foreach(var student in students)
+            foreach (var student in students)
             {
                 var studentDegreeCourse = student.StudentDegreeCourses.FirstOrDefault();
-                if(studentDegreeCourse is not null)
+                if (studentDegreeCourse is not null)
                 {
                     var degreePaths = context.DegreePaths.Where(dp => dp.DegreeCourseId == studentDegreeCourse.DegreeCourseId).ToList();
                     if (degreePaths.Any())
@@ -129,10 +129,10 @@ namespace Infrastructure.Seeding.StudentSeeding
         {
             var random = new Random();
 
-            foreach(var student in students)
+            foreach (var student in students)
             {
                 var studentDegreePath = student.studentDegreePaths.FirstOrDefault();
-                if(studentDegreePath is not null)
+                if (studentDegreePath is not null)
                 {
                     var modules = context.Modules.Where(m => m.DegreePathId == studentDegreePath.DegreePathId).ToList();
                     if (modules.Any())

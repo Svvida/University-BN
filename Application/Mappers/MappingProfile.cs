@@ -30,6 +30,9 @@ namespace Application.Mappers
                 .ForMember(dest => dest.Student, opt => opt.MapFrom(src => src.Student))
                 .ForMember(dest => dest.Employee, opt => opt.MapFrom(src => src.Employee));
 
+            // UserAccount to AccountCreateDto
+            CreateMap<UserAccount, AccountCreateDto>().ReverseMap();
+
             // Role to RoleDto and reverse
             CreateMap<Role, RoleDto>().ReverseMap();
 

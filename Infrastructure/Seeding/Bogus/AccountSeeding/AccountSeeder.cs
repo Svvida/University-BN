@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Utilities;
 
-namespace Infrastructure.Seeding.AccountSeeding
+namespace Infrastructure.Seeding.Bogus.AccountSeeding
 {
     public static class AccountSeeder
     {
@@ -20,10 +20,10 @@ namespace Infrastructure.Seeding.AccountSeeding
                 .RuleFor(a => a.Password, f => f.Internet.Password())
                 .RuleFor(a => a.Email, f => f.Internet.Email());
 
-            for(int i = 0; i < count; i++)
+            for (int i = 0; i < count; i++)
             {
                 var account = faker.Generate();
-                EnsureUniqueLogin(accounts,account);
+                EnsureUniqueLogin(accounts, account);
                 EnsureUniqueEmail(accounts, account);
                 accounts.Add(account);
             }
@@ -34,7 +34,7 @@ namespace Infrastructure.Seeding.AccountSeeding
         {
             var originalLogin = account.Login;
             var suffix = 1;
-            while(accounts.Any(a => a.Login == account.Login))
+            while (accounts.Any(a => a.Login == account.Login))
             {
                 account.Login = originalLogin + suffix;
                 suffix++;
@@ -48,7 +48,7 @@ namespace Infrastructure.Seeding.AccountSeeding
             var prefix = originalEmail.Substring(0, atIndex);
             var domain = originalEmail.Substring(atIndex);
             var suffix = 1;
-            while(accounts.Any(a => a.Email == account.Email))
+            while (accounts.Any(a => a.Email == account.Email))
             {
                 account.Email = prefix + suffix + domain;
                 suffix++;

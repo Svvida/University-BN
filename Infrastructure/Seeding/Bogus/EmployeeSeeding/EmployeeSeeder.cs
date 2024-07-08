@@ -12,15 +12,15 @@ using Domain.Enums;
 using System.Diagnostics;
 using Utilities;
 
-namespace Infrastructure.Seeding.EmployeeSeeding
+namespace Infrastructure.Seeding.Bogus.EmployeeSeeding
 {
     public static class EmployeeSeeder
     {
         public static List<Employee> GenerateEmployees(List<UserAccount> accounts, UniversityContext context)
         {
 
-            var addresses = GenerateAddresses(50000);
-            var consents = GenerateConsents(50000);
+            var addresses = GenerateAddresses(SeedingConstants.EmployeeSeedCount);
+            var consents = GenerateConsents(SeedingConstants.EmployeeSeedCount);
 
             context.EmployeesAddresses.AddRange(addresses);
             context.EmployeesConsents.AddRange(consents);
