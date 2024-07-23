@@ -2,12 +2,6 @@
 using Domain.Interfaces.Repositories;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Formats.Asn1;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Repositories
 {
@@ -23,7 +17,7 @@ namespace Infrastructure.Repositories
         public async Task<Role> GetByIdAsync(Guid id)
         {
             var role = await _context.Roles.FindAsync(id);
-            if(role is not null)
+            if (role is not null)
             {
                 return role;
             }
@@ -40,7 +34,7 @@ namespace Infrastructure.Repositories
 
         public async Task CreateAsync(Role role)
         {
-            if(role is not null)
+            if (role is not null)
             {
                 await _context.Roles.AddAsync(role);
                 await _context.SaveChangesAsync();

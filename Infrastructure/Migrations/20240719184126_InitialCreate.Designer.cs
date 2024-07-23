@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(UniversityContext))]
-    [Migration("20240707100440_InitialCreate")]
+    [Migration("20240719184126_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -27,11 +27,18 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("Domain.Entities.AccountEntities.Role", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("NormalizedName")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("varchar(50)");
@@ -59,8 +66,8 @@ namespace Infrastructure.Migrations
 
                     b.Property<string>("Password")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.HasKey("Id");
 
@@ -72,8 +79,8 @@ namespace Infrastructure.Migrations
                     b.Property<Guid>("AccountId")
                         .HasColumnType("char(36)");
 
-                    b.Property<Guid>("RoleId")
-                        .HasColumnType("char(36)");
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int");
 
                     b.HasKey("AccountId", "RoleId");
 

@@ -1,18 +1,9 @@
 ﻿using Bogus;
-using Domain.Entities.StudentEntities;
-using Infrastructure.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Threading.Tasks;
-using Domain.Enums;
 using Domain.Entities.AccountEntities;
+using Domain.Entities.StudentEntities;
+using Domain.Enums;
+using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using System.Diagnostics;
-using Utilities;
 
 namespace Infrastructure.Seeding.Bogus.StudentSeeding
 {

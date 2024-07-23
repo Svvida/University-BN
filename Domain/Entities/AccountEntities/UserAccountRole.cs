@@ -10,12 +10,12 @@ namespace Domain.Entities.AccountEntities
         public UserAccount? Account { get; set; }
 
         [Required]
-        public Guid RoleId { get; set; }
+        public int RoleId { get; set; }
         public Role? Role { get; set; }
 
         public UserAccountRole() { }
 
-        public UserAccountRole(Guid accountId, Guid roleId)
+        public UserAccountRole(Guid accountId, int roleId)
         {
             AccountId = accountId;
             RoleId = roleId;

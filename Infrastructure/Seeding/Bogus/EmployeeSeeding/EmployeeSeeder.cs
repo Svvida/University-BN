@@ -1,16 +1,8 @@
 ﻿using Bogus;
 using Domain.Entities.AccountEntities;
 using Domain.Entities.EmployeeEntities;
-using Domain.Entities.StudentEntities;
-using Infrastructure.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Domain.Enums;
-using System.Diagnostics;
-using Utilities;
+using Infrastructure.Data;
 
 namespace Infrastructure.Seeding.Bogus.EmployeeSeeding
 {

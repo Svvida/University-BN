@@ -1,14 +1,9 @@
-﻿using System;
-using System.Linq;
-using Bogus;
-using Domain.Entities.StudentEntities;
-using Infrastructure.Data;
+﻿using Infrastructure.Data;
 using Infrastructure.Seeding.Bogus.AccountSeeding;
 using Infrastructure.Seeding.Bogus.EmployeeSeeding;
 using Infrastructure.Seeding.Bogus.StudentSeeding;
 using Microsoft.Extensions.DependencyInjection;
 using Utilities;
-using Infrastructure.Seeding;
 
 namespace Infrastructure.Seeding.Bogus
 {

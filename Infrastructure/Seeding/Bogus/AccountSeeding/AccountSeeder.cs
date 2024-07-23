@@ -1,11 +1,5 @@
 ﻿using Bogus;
 using Domain.Entities.AccountEntities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Utilities;
 
 namespace Infrastructure.Seeding.Bogus.AccountSeeding
 {

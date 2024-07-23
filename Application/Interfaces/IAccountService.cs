@@ -1,4 +1,4 @@
-﻿using Application.DTOs.AccountDtos;
+﻿using Application.DTOs.Account.Dtos;
 using Application.Interfaces.IGenericServices;
 using Domain.Enums;
 

@@ -1,13 +1,7 @@
 ﻿using Domain.EntitiesBase;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Domain.Interfaces.InterfacesBase;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using System.Diagnostics.Tracing;
 
 namespace Infrastructure.Repositories.RepositoriesBase
 {
@@ -30,7 +24,9 @@ namespace Infrastructure.Repositories.RepositoriesBase
                 return consent;
             }
             else
+            {
                 throw new KeyNotFoundException("Consent not found");
+            }
         }
 
         public async Task<IEnumerable<T>> GetAllAsync()
@@ -40,7 +36,7 @@ namespace Infrastructure.Repositories.RepositoriesBase
 
         public async Task CreateAsync(T consent)
         {
-            if(consent is null)
+            if (consent is null)
             {
                 throw new ArgumentNullException(nameof(consent), "Consent cannot be null");
             }
@@ -75,8 +71,8 @@ namespace Infrastructure.Repositories.RepositoriesBase
         public async Task SwitchConsentAsync(Guid id, string consentType)
         {
             var consent = await _consents.FindAsync(id);
-            
-            if(consent is null)
+
+            if (consent is null)
             {
                 throw new KeyNotFoundException("Consent not found");
             }

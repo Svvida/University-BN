@@ -1,11 +1,11 @@
-﻿using Application.DTOs.AccountDtos;
+﻿using Application.DTOs.Account.Dtos;
 using Application.Interfaces;
-using Application.Mappers;
 using AutoMapper;
 using Domain.Entities.AccountEntities;
 using Domain.Enums;
 using Domain.Interfaces.Repositories;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Services
 {
@@ -14,22 +14,31 @@ namespace Application.Services
         private readonly IMapper _mapper;
         private readonly IAccountRepository _accountRepository;
         private readonly IPasswordHasher<object> _passwordHasher;
+        private readonly ILogger<AccountService> _logger;
 
-        public AccountService(IMapper mapper, IAccountRepository accountRepository)
+        public AccountService(IMapper mapper, IAccountRepository accountRepository, IPasswordHasher<object> passwordHasher, ILogger<AccountService> logger)
         {
             _mapper = mapper;
             _accountRepository = accountRepository;
-            _passwordHasher = new PasswordHasher<object>();
+            _passwordHasher = passwordHasher;
+            _logger = logger;
         }
 
         public async Task<AccountFullDto> GetByIdAsync(Guid id)
         {
-            if(id == Guid.Empty)
+            if (id == Guid.Empty)
             {
+                _logger.LogWarning("GetByIdAsync called with empty id");
                 throw new ArgumentNullException("Id cannot be null");
             }
 
             var account = await _accountRepository.GetByIdAsync(id);
+            if (account is null)
+            {
+                _logger.LogWarning("Account with id {id} not found", id);
+                throw new KeyNotFoundException("Account not found");
+            }
+
             return _mapper.Map<AccountFullDto>(account);
         }
 
@@ -57,7 +66,7 @@ namespace Application.Services
         public async Task UpdateAsync(AccountFullDto account)
         {
             var existingAccount = await _accountRepository.GetByIdAsync(account.Id);
-            if(existingAccount is not null)
+            if (existingAccount is not null)
             {
                 var accountEntity = _mapper.Map(account, existingAccount);
                 await _accountRepository.UpdateAsync(accountEntity);
@@ -70,12 +79,12 @@ namespace Application.Services
 
         public async Task DeleteAsync(Guid id)
         {
-            if(id == Guid.Empty)
+            if (id == Guid.Empty)
             {
                 throw new ArgumentNullException("Id cannot be null");
             }
-            var account  = await _accountRepository.GetByIdAsync(id);
-            if(account is not null)
+            var account = await _accountRepository.GetByIdAsync(id);
+            if (account is not null)
             {
                 await _accountRepository.DeleteAsync(account.Id);
             }

@@ -1,9 +1,8 @@
-﻿using Application.DTOs.BaseDtos;
-using Domain.Enums;
+﻿using Domain.Enums;
 
 namespace Application.Interfaces
 {
-    public interface IPersonService<T> where T : PersonOnlyDto
+    public interface IPersonService<T>
     {
         Task<T> GetByIdAsync(Guid id);
         Task<IEnumerable<T>> GetAllAsync();

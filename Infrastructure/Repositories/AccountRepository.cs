@@ -1,13 +1,8 @@
 ﻿using Domain.Entities.AccountEntities;
+using Domain.Enums;
 using Domain.Interfaces.Repositories;
 using Infrastructure.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using Domain.Enums;
 
 namespace Infrastructure.Repositories
 {
@@ -23,7 +18,7 @@ namespace Infrastructure.Repositories
         public async Task<UserAccount> GetByIdAsync(Guid id)
         {
             var account = await _context.UsersAccounts.FindAsync(id);
-            if(account is not null)
+            if (account is not null)
             {
                 return account;
             }
@@ -43,7 +38,7 @@ namespace Infrastructure.Repositories
             string dbFieldName = GetDbFieldName(field);
             var accounts = await _context.UsersAccounts.Where(e => EF.Property<string>(e, dbFieldName) == value).ToListAsync();
 
-            if(!accounts.Any())
+            if (!accounts.Any())
             {
                 throw new KeyNotFoundException($"No Account fount with {field} = {value}");
             }
@@ -67,7 +62,7 @@ namespace Infrastructure.Repositories
 
         public async Task CreateAsync(UserAccount account)
         {
-            if(account is not null)
+            if (account is not null)
             {
                 await _context.UsersAccounts.AddAsync(account);
                 await _context.SaveChangesAsync();
@@ -80,9 +75,9 @@ namespace Infrastructure.Repositories
 
         public async Task UpdateAsync(UserAccount account)
         {
-            if(account is not null)
+            if (account is not null)
             {
-                 _context.UsersAccounts.Update(account);
+                _context.UsersAccounts.Update(account);
                 await _context.SaveChangesAsync();
             }
             else
@@ -94,10 +89,24 @@ namespace Infrastructure.Repositories
         public async Task DeleteAsync(Guid id)
         {
             var account = await _context.UsersAccounts.FindAsync(id);
-            if(account is not null)
+            if (account is not null)
             {
                 _context.UsersAccounts.Remove(account);
                 await _context.SaveChangesAsync();
+            }
+            else
+            {
+                throw new KeyNotFoundException("Account not found");
+            }
+        }
+
+        public async Task<UserAccount> GetByUsername(string username)
+        {
+
+            var account = await _context.UsersAccounts.FirstOrDefaultAsync(e => e.Login == username);
+            if (account is not null)
+            {
+                return account;
             }
             else
             {

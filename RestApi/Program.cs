@@ -1,18 +1,19 @@
 
-using Serilog;
-using Microsoft.Extensions.Logging;
+using Application.Interfaces;
 using Domain.Interfaces;
 using Domain.Interfaces.InterfacesBase;
 using Domain.Interfaces.Repositories;
 using Infrastructure.Data;
-using Infrastructure.Repositories.RepositoriesBase;
 using Infrastructure.Repositories;
+using Infrastructure.Repositories.RepositoriesBase;
 using Infrastructure.Seeding;
+using Infrastructure.Seeding.Bogus;
 using Infrastructure.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using OfficeOpenXml;
+using Serilog;
 using Utilities;
-using Infrastructure.Seeding.Bogus;
 
 namespace RestApi
 {
@@ -20,7 +21,22 @@ namespace RestApi
     {
         public static async Task Main(string[] args)
         {
-            // Configure Serilog
+            ConfigureLogger();
+
+            var builder = WebApplication.CreateBuilder(args);
+            ConfigureServices(builder);
+
+            var app = builder.Build();
+
+            await SeedDatabaseAsync(app);
+
+            ConfigureMiddleware(app);
+
+            app.Run();
+        }
+
+        private static void ConfigureLogger()
+        {
             Log.Logger = new LoggerConfiguration()
                 .ReadFrom.Configuration(new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json")
@@ -29,10 +45,11 @@ namespace RestApi
                 .WriteTo.Console()
                 .WriteTo.Debug()
                 .CreateLogger();
+        }
 
-            var builder = WebApplication.CreateBuilder(args);
-
-            // Add services to the container.
+        private static void ConfigureServices(WebApplicationBuilder builder)
+        {
+            // Add services to the container
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
@@ -41,11 +58,11 @@ namespace RestApi
             var configuration = builder.Configuration;
 
             // Configure DbContext
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+            var connextionString = builder.Configuration.GetConnectionString("DefaultConnection");
             builder.Services.AddDbContext<UniversityContext>(options =>
-            options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString))
-            .EnableSensitiveDataLogging(false)
-            .LogTo(Console.WriteLine, LogLevel.Warning));
+                options.UseMySql(connextionString, ServerVersion.AutoDetect(connextionString))
+                .EnableSensitiveDataLogging(false)
+                .LogTo(Console.WriteLine, LogLevel.Warning));
 
             // Register Repositories
             builder.Services.AddScoped(typeof(IAddressRepository<>), typeof(AddressRepository<>));
@@ -55,26 +72,38 @@ namespace RestApi
             builder.Services.AddScoped<IAccountRepository, AccountRepository>();
             builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 
+            // Register Services
+            builder.Services.AddScoped<IAccountService, IAccountService>();
+
+            // Register password hasher
+            builder.Services.AddSingleton<IPasswordHasher<object>, PasswordHasher<object>>();
+
+            // Register Logger
+            builder.Services.AddLogging();
+
+            // Register stopwatch service
+            builder.Services.AddScoped<StopwatchService>();
+
             // Register Unit Of Work
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            // Register SeedDataFromFile
             builder.Services.AddScoped<SeedDataFromFile>();
 
             // Register ExcelService
-            builder.Services.AddSingleton<ExcelService>();
+            builder.Services.AddScoped<ExcelService>();
 
             // Pass EPPlus configuration to Infrastucture layer
             ExcelPackage.LicenseContext = configuration.GetSection("EPPlus:ExcelPackage").Get<LicenseContext>();
-    
-            var app = builder.Build();
+        }
 
-            // Initialize Logger
-            var logger = app.Services.GetRequiredService<ILogger<Logger>>();
-            Logger.Instance.SetLogger(logger);
-
-            // Seed database
+        private static async Task SeedDatabaseAsync(WebApplication app)
+        {
             using (var scope = app.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
+                var configuration = services.GetRequiredService<IConfiguration>();
+
                 try
                 {
                     RoleSeeding.Initialize(services);
@@ -82,12 +111,13 @@ namespace RestApi
                     var excelFilePaths = configuration.GetSection("SeedData:ExcelFilePaths").Get<List<string>>();
                     var seedDataFromFile = services.GetRequiredService<SeedDataFromFile>();
 
-                    StopwatchService.Instance.Start();
-                    Logger.Instance.Log("Seeding database from files");
+                    StopwatchService.Start();
+
                     foreach (var filePath in excelFilePaths)
                     {
                         await seedDataFromFile.InitializeAsync(filePath);
                     }
+
                     StopwatchService.Instance.Stop();
                     StopwatchService.Instance.LogElapsed("Seeding database from file completed", "seconds");
 
@@ -95,11 +125,14 @@ namespace RestApi
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "An error occurred while seeding the database.");
+
                 }
             }
+        }
 
-            // Configure the HTTP request pipeline.
+
+        private static void ConfigureMiddleware(WebApplication app)
+        {
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -109,8 +142,6 @@ namespace RestApi
             app.UseHttpsRedirection();
             app.UseAuthorization();
             app.MapControllers();
-
-            app.Run();
         }
     }
 }

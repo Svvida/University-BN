@@ -41,7 +41,7 @@ namespace Infrastructure.Repositories.RepositoriesBase
             var address = await _addresses.Where(e => EF.Property<string>(e, dbFieldName) == value)
                 .ToListAsync();
 
-            if(!address.Any())
+            if (!address.Any())
             {
                 throw new KeyNotFoundException($"No address found with {dbFieldName} = {value}");
             }
@@ -51,7 +51,7 @@ namespace Infrastructure.Repositories.RepositoriesBase
 
         private string GetDbFieldName(AddressSearchableFields field)
         {
-            switch(field)
+            switch (field)
             {
                 case AddressSearchableFields.City:
                     return "City";

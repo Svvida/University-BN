@@ -4,11 +4,6 @@ using Domain.Enums;
 using Domain.Interfaces.InterfacesBase;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Repositories.RepositoriesBase
 {
@@ -26,7 +21,7 @@ namespace Infrastructure.Repositories.RepositoriesBase
         public async Task<T> GetByIdAsync(Guid id)
         {
             var education = await _educations.FindAsync(id);
-            if(education is not null)
+            if (education is not null)
             {
                 return education;
             }
@@ -91,7 +86,7 @@ namespace Infrastructure.Repositories.RepositoriesBase
         public async Task DeleteAsync(Guid id)
         {
             var education = await _educations.FindAsync(id);
-            if(education is not null)
+            if (education is not null)
             {
                 _educations.Remove(education);
                 await _context.SaveChangesAsync();
@@ -119,7 +114,7 @@ namespace Infrastructure.Repositories.RepositoriesBase
 
         public async Task AddRangeAsync(IEnumerable<T> entities)
         {
-            if(entities is null || !entities.Any())
+            if (entities is null || !entities.Any())
             {
                 throw new ArgumentNullException(nameof(entities), "Entities cannot be null or empty");
             }

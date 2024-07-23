@@ -1,39 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.Extensions.Logging;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Utilities
 {
     public sealed class StopwatchService
     {
-        private static StopwatchService _instance;
-        private static readonly object lockObj = new object();
-        private Stopwatch _stopwatch;
 
-        private StopwatchService()
+        private readonly Stopwatch _stopwatch;
+        private readonly ILogger<StopwatchService> _logger;
+
+        private StopwatchService(ILogger<StopwatchService> logger)
         {
             _stopwatch = new Stopwatch();
-        }
-
-        public static StopwatchService Instance
-        {
-            get
-            {
-                if (_instance is null)
-                {
-                    lock (lockObj)
-                    {
-                        if (_instance is null)
-                        {
-                            _instance = new StopwatchService();
-                        }
-                    }
-                }
-                return _instance;
-            }
+            _logger = logger;
         }
 
         public void Start()
@@ -66,7 +45,7 @@ namespace Utilities
                     break;
             }
 
-            Logger.Instance.Log($"{message} in {elapsedTime}");
+            _logger.LogInformation($"{message} in {elapsedTime}");
         }
     }
 }

@@ -11,5 +11,6 @@ namespace Domain.Interfaces.Repositories
         Task CreateAsync(UserAccount userAccount);
         Task UpdateAsync(UserAccount userAccount);
         Task DeleteAsync(Guid id);
+        Task<UserAccount> GetByUsername(string username);
     }
 }

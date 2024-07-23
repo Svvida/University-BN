@@ -1,14 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Linq;
-using Infrastructure.Data;
-using Infrastructure.Services;
-using System.Collections.Generic;
-using Domain.Entities.EducationEntities;
-using Utilities;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
+﻿using Domain.Entities.EducationEntities;
 using Domain.Interfaces;
+using Infrastructure.Services;
 
 namespace Infrastructure.Seeding
 {
@@ -17,9 +9,9 @@ namespace Infrastructure.Seeding
         private readonly IUnitOfWork _unitOfWork;
         private readonly ExcelService _excelService;
 
-        public SeedDataFromFile(IServiceProvider serviceProvider)
+        public SeedDataFromFile(IUnitOfWork unitOfWork)
         {
-            _unitOfWork = serviceProvider.GetRequiredService<IUnitOfWork>();
+            _unitOfWork = unitOfWork;
             _excelService = new ExcelService();
         }
 
@@ -41,7 +33,7 @@ namespace Infrastructure.Seeding
 
             var degreeCourse = await EnsureDegreeCourseAsync(degreeCourseName);
 
-            foreach(var sheet in sheetData)
+            foreach (var sheet in sheetData)
             {
                 var degreePathName = sheet.Key;
                 var data = sheet.Value;
@@ -51,6 +43,7 @@ namespace Infrastructure.Seeding
                 var degreePath = await EnsureDegreePathAsync(degreeCourse, degreePathName);
                 await ProcessSheetDataAsync(degreeCourse, degreePath, data);
             }
+            Logger.Instance.Log($"Seeding from file completed, disposing");
         }
 
         private async Task<DegreeCourse> EnsureDegreeCourseAsync(string degreeCourseName)
@@ -69,7 +62,7 @@ namespace Infrastructure.Seeding
         private async Task<DegreePath> EnsureDegreePathAsync(DegreeCourse degreeCourse, string degreePathName)
         {
             var degreePath = await _unitOfWork.DegreePaths.FindAsync(dp => dp.Name == degreePathName && dp.DegreeCourseId == degreeCourse.Id);
-            if(degreePath is null)
+            if (degreePath is null)
             {
                 degreePath = new DegreePath
                 {
@@ -86,7 +79,7 @@ namespace Infrastructure.Seeding
         private async Task<Module> EnsureModuleAsync(DegreePath degreePath, string moduleName)
         {
             var module = await _unitOfWork.Modules.FindAsync(m => m.Name == moduleName && m.DegreePathId == degreePath.Id);
-            if(module is null)
+            if (module is null)
             {
                 module = new Module
                 {
@@ -103,7 +96,7 @@ namespace Infrastructure.Seeding
         private async Task<Subject> EnsureSubjectAsync(string subjectName)
         {
             var subject = await _unitOfWork.Subjects.FindAsync(s => s.Name == subjectName);
-            if(subject is null)
+            if (subject is null)
             {
                 subject = new Subject { Name = subjectName };
                 await _unitOfWork.Subjects.CreateAsync(subject);
@@ -116,7 +109,7 @@ namespace Infrastructure.Seeding
         private async Task AddToDegreeCourseSubjectAsync(DegreeCourse degreeCourse, Subject subject, List<DegreeCourseSubject> degreeCourseSubjects)
         {
             var exists = await _unitOfWork.DegreeCourseSubjects.ExistsAsync(dcs => dcs.DegreeCourseId == degreeCourse.Id && dcs.SubjectId == subject.Id);
-            if(!exists)
+            if (!exists)
             {
                 degreeCourseSubjects.Add(new DegreeCourseSubject
                 {
@@ -130,7 +123,7 @@ namespace Infrastructure.Seeding
         {
 
             var exists = await _unitOfWork.ModuleSubjects.ExistsAsync(ms => ms.ModuleId == module.Id && ms.SubjectId == subject.Id);
-            if(!exists)
+            if (!exists)
             {
                 moduleSubjects.Add(new ModuleSubject
                 {
@@ -145,19 +138,19 @@ namespace Infrastructure.Seeding
             var moduleSubjects = new List<ModuleSubject>();
             var degreeCourseSubjects = new List<DegreeCourseSubject>();
 
-            foreach(var (subjectName, moduleName) in data)
+            foreach (var (subjectName, moduleName) in data)
             {
-                if (subjectName.Contains("Razem Semestr")||string.IsNullOrEmpty(moduleName))
+                if (subjectName.Contains("Razem Semestr") || string.IsNullOrEmpty(moduleName))
                 {
                     //Logger.Instance.Log($"Skipping subject {subjectName}, Module {moduleName}");
                     continue;
                 }
                 //Logger.Instance.Log($"Subject before ensuring: {subjectName}, Module: {moduleName}");
-               
+
                 var subject = await EnsureSubjectAsync(subjectName);
                 //Logger.Instance.Log($"Subject after fetching: {subject.Name}, {subject.Id}");
 
-                if(moduleName == "Kierunkowy")
+                if (moduleName == "Kierunkowy")
                 {
                     await AddToDegreeCourseSubjectAsync(degreeCourse, subject, degreeCourseSubjects);
                 }
@@ -173,7 +166,7 @@ namespace Infrastructure.Seeding
             {
                 await _unitOfWork.ModuleSubjects.AddRangeAsync(moduleSubjects.DistinctBy(ms => new { ms.ModuleId, ms.SubjectId }));
             }
-            if(degreeCourseSubjects.Any())
+            if (degreeCourseSubjects.Any())
             {
                 await _unitOfWork.DegreeCourseSubjects.AddRangeAsync(degreeCourseSubjects.DistinctBy(dcs => new { dcs.DegreeCourseId, dcs.SubjectId }));
 

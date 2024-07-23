@@ -1,14 +1,9 @@
 ﻿using Domain.Entities.EducationEntities;
 using Domain.Interfaces.InterfacesBase;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Domain.Interfaces
 {
-    public interface IUnitOfWork : IDisposable
+    public interface IUnitOfWork
     {
         IEducationRepository<DegreeCourse> DegreeCourses { get; }
         IEducationRepository<DegreePath> DegreePaths { get; }

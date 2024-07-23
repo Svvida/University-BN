@@ -3,11 +3,6 @@ using Domain.Interfaces;
 using Domain.Interfaces.InterfacesBase;
 using Infrastructure.Data;
 using Infrastructure.Repositories.RepositoriesBase;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Seeding
 {
@@ -36,11 +31,6 @@ namespace Infrastructure.Seeding
         public async Task<int> CompleteAsync()
         {
             return await _context.SaveChangesAsync();
-        }
-
-        public void Dispose()
-        {
-            _context.Dispose();
         }
     }
 }

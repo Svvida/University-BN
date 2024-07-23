@@ -3,12 +3,6 @@ using Domain.Enums;
 using Domain.Interfaces.InterfacesBase;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics.Tracing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Repositories.RepositoriesBase
 {
@@ -27,7 +21,7 @@ namespace Infrastructure.Repositories.RepositoriesBase
         {
             var person = await _persons.FindAsync(id);
 
-            if(person is not null)
+            if (person is not null)
             {
                 return person;
             }
@@ -48,7 +42,7 @@ namespace Infrastructure.Repositories.RepositoriesBase
             string dbFieldName = GetDbFieldName(field);
             var person = await _persons.Where(e => EF.Property<string>(e, dbFieldName) == value).ToListAsync();
 
-            if(!person.Any())
+            if (!person.Any())
             {
                 throw new KeyNotFoundException($"No {typeof(T).Name} found with {field} = {value}");
             }
@@ -79,7 +73,7 @@ namespace Infrastructure.Repositories.RepositoriesBase
 
         public async Task CreateAsync(T person)
         {
-            if(person is null)
+            if (person is null)
             {
                 throw new ArgumentNullException(nameof(person), $"{typeof(T).Name} cannot be null");
             }
@@ -89,7 +83,7 @@ namespace Infrastructure.Repositories.RepositoriesBase
 
         public async Task UpdateAsync(T person)
         {
-            if(person is null)
+            if (person is null)
             {
                 throw new ArgumentNullException(nameof(person), $"{typeof(T).Name} cannot be null");
             }
@@ -100,7 +94,7 @@ namespace Infrastructure.Repositories.RepositoriesBase
         public async Task DeleteAsync(Guid id)
         {
             var person = await _persons.FindAsync(id);
-            if(person is not null)
+            if (person is not null)
             {
                 _persons.Remove(person);
                 await _context.SaveChangesAsync();
