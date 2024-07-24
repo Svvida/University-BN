@@ -2,46 +2,56 @@
 using Infrastructure.Seeding.Bogus.AccountSeeding;
 using Infrastructure.Seeding.Bogus.EmployeeSeeding;
 using Infrastructure.Seeding.Bogus.StudentSeeding;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Utilities;
 
 namespace Infrastructure.Seeding.Bogus
 {
     public class BogusSeeder
     {
-        public static void Initialize(IServiceProvider serviceProvider)
+        private readonly StopwatchService _stopwatchService;
+        private readonly ILogger<BogusSeeder> _logger;
+
+        public BogusSeeder(StopwatchService stopwatchService, ILogger<BogusSeeder> logger)
+        {
+            _stopwatchService = stopwatchService;
+            _logger = logger;
+        }
+
+        public void Initialize(IServiceProvider serviceProvider)
         {
             using (var context = serviceProvider.GetRequiredService<UniversityContext>())
             {
-                StopwatchService.Instance.Start();
+                _stopwatchService.Start();
 
                 // Generate unique accounts
                 var accounts = AccountSeeder.GenerateAccounts(SeedingConstants.AccountSeedCount);
-                StopwatchService.Instance.LogElapsed($"Generated {accounts.Count} accounts", "seconds");
+                _stopwatchService.LogElapsed($"Generated {accounts.Count} accounts", "seconds");
 
                 // Save accounts
                 context.UsersAccounts.AddRange(accounts);
                 context.SaveChanges();
-                StopwatchService.Instance.Stop();
-                StopwatchService.Instance.LogElapsed($"Generated and saved {accounts.Count} accounts", "seconds");
+                _stopwatchService.Stop();
+                _stopwatchService.LogElapsed($"Generated and saved {accounts.Count} accounts", "seconds");
 
                 // Generate Students
-                StopwatchService.Instance.Start();
+                _stopwatchService.Start();
                 var students = StudentSeeder.GenerateStudents(accounts.Take(SeedingConstants.StudentSeedCount).ToList(), context);
-                StopwatchService.Instance.Stop();
-                StopwatchService.Instance.LogElapsed($"Generated and saved {students.Count} students", "seconds");
+                _stopwatchService.Stop();
+                _stopwatchService.LogElapsed($"Generated and saved {students.Count} students", "seconds");
 
                 // Generate Employees
-                StopwatchService.Instance.Start();
+                _stopwatchService.Start();
                 var employees = EmployeeSeeder.GenerateEmployees(accounts.Skip(SeedingConstants.EmployeeSeedCount).Take(SeedingConstants.EmployeeSeedCount).ToList(), context);
-                StopwatchService.Instance.LogElapsed($"Generated {employees.Count} employees", "seconds");
+                _stopwatchService.LogElapsed($"Generated {employees.Count} employees", "seconds");
 
                 // Save employees
                 context.Employees.AddRange(employees);
                 context.SaveChanges();
-                StopwatchService.Instance.Stop();
-                StopwatchService.Instance.LogElapsed($"Generated and saved {employees.Count} employees", "seconds");
-
+                _stopwatchService.Stop();
+                _stopwatchService.LogElapsed($"Generated and saved {employees.Count} employees", "seconds");
             }
         }
     }

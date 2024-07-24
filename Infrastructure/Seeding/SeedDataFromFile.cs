@@ -1,6 +1,7 @@
 ﻿using Domain.Entities.EducationEntities;
 using Domain.Interfaces;
 using Infrastructure.Services;
+using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Seeding
 {
@@ -8,16 +9,18 @@ namespace Infrastructure.Seeding
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ExcelService _excelService;
+        private readonly ILogger<SeedDataFromFile> _logger;
 
-        public SeedDataFromFile(IUnitOfWork unitOfWork)
+        public SeedDataFromFile(IUnitOfWork unitOfWork, ExcelService excelService, ILogger<SeedDataFromFile> logger)
         {
             _unitOfWork = unitOfWork;
-            _excelService = new ExcelService();
+            _excelService = excelService;
+            _logger = logger;
         }
 
         public async Task InitializeAsync(string excelFilePath)
         {
-            Logger.Instance.Log($"Seeding database from file: {excelFilePath}");
+            _logger.LogInformation($"Seeding database from file: {excelFilePath}");
 
             var sheetData = _excelService.ReadFromExcel<(string Subject, string Module)>(excelFilePath, (worksheet, row) =>
             {
@@ -26,10 +29,10 @@ namespace Infrastructure.Seeding
                 Module: worksheet.Cells[row, 2].Text);
             });
 
-            Logger.Instance.Log($"Number of sheets: {sheetData.Count()}");
+            _logger.LogInformation($"Number of sheets: {sheetData.Count()}");
 
             var degreeCourseName = Path.GetFileNameWithoutExtension(excelFilePath);
-            //Logger.Instance.Log($"Processing {degreeCourseName}");
+            //_logger.LogInformation($"Processing {degreeCourseName}");
 
             var degreeCourse = await EnsureDegreeCourseAsync(degreeCourseName);
 
@@ -38,12 +41,12 @@ namespace Infrastructure.Seeding
                 var degreePathName = sheet.Key;
                 var data = sheet.Value;
 
-                //Logger.Instance.Log($"Degree path: {degreePathName}");
+                //_logger.LogInformation($"Degree path: {degreePathName}");
 
                 var degreePath = await EnsureDegreePathAsync(degreeCourse, degreePathName);
                 await ProcessSheetDataAsync(degreeCourse, degreePath, data);
             }
-            Logger.Instance.Log($"Seeding from file completed, disposing");
+            _logger.LogInformation($"Seeding from file completed, disposing");
         }
 
         private async Task<DegreeCourse> EnsureDegreeCourseAsync(string degreeCourseName)
@@ -54,7 +57,7 @@ namespace Infrastructure.Seeding
                 degreeCourse = new DegreeCourse { Name = degreeCourseName };
                 await _unitOfWork.DegreeCourses.CreateAsync(degreeCourse);
                 await _unitOfWork.CompleteAsync();
-                //Logger.Instance.Log($"Created new DegreeCourse: {degreeCourse.Name}");
+                //_logger.LogInformation($"Created new DegreeCourse: {degreeCourse.Name}");
             }
             return degreeCourse;
         }
@@ -71,7 +74,7 @@ namespace Infrastructure.Seeding
                 };
                 await _unitOfWork.DegreePaths.CreateAsync(degreePath);
                 await _unitOfWork.CompleteAsync();
-                //Logger.Instance.Log($"Created new DegreePath: {degreePath.Name}");
+                //_logger.LogInformation($"Created new DegreePath: {degreePath.Name}");
             }
             return degreePath;
         }
@@ -88,7 +91,7 @@ namespace Infrastructure.Seeding
                 };
                 await _unitOfWork.Modules.CreateAsync(module);
                 await _unitOfWork.CompleteAsync();
-                //Logger.Instance.Log($"Created new Module: {module.Name}");
+                //_logger.LogInformation($"Created new Module: {module.Name}");
             }
             return module;
         }
@@ -101,7 +104,7 @@ namespace Infrastructure.Seeding
                 subject = new Subject { Name = subjectName };
                 await _unitOfWork.Subjects.CreateAsync(subject);
                 await _unitOfWork.CompleteAsync();
-                //Logger.Instance.Log($"Created new Subject: {subject.Name}");
+                //_logger.LogInformation($"Created new Subject: {subject.Name}");
             }
             return subject;
         }
@@ -142,13 +145,13 @@ namespace Infrastructure.Seeding
             {
                 if (subjectName.Contains("Razem Semestr") || string.IsNullOrEmpty(moduleName))
                 {
-                    //Logger.Instance.Log($"Skipping subject {subjectName}, Module {moduleName}");
+                    //_logger.LogInformation($"Skipping subject {subjectName}, Module {moduleName}");
                     continue;
                 }
-                //Logger.Instance.Log($"Subject before ensuring: {subjectName}, Module: {moduleName}");
+                //_logger.LogInformation($"Subject before ensuring: {subjectName}, Module: {moduleName}");
 
                 var subject = await EnsureSubjectAsync(subjectName);
-                //Logger.Instance.Log($"Subject after fetching: {subject.Name}, {subject.Id}");
+                //_logger.LogInformation($"Subject after fetching: {subject.Name}, {subject.Id}");
 
                 if (moduleName == "Kierunkowy")
                 {

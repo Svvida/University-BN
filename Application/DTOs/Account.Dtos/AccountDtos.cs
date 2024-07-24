@@ -37,4 +37,9 @@ namespace Application.DTOs.Account.Dtos
         [StringLength(50, MinimumLength = 8)]
         public string Password { get; set; }
     }
+
+    public class AccountUpdateDto : AccountOnlyDto
+    {
+        public string Password { get; set; }
+    }
 }

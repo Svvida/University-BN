@@ -1,5 +1,7 @@
 
 using Application.Interfaces;
+using Application.Services;
+using Domain.Entities.AccountEntities;
 using Domain.Interfaces;
 using Domain.Interfaces.InterfacesBase;
 using Domain.Interfaces.Repositories;
@@ -73,16 +75,19 @@ namespace RestApi
             builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 
             // Register Services
-            builder.Services.AddScoped<IAccountService, IAccountService>();
+            builder.Services.AddScoped<IAccountService, AccountService>();
 
             // Register password hasher
-            builder.Services.AddSingleton<IPasswordHasher<object>, PasswordHasher<object>>();
+            builder.Services.AddSingleton<IPasswordHasher<UserAccount>, PasswordHasher<UserAccount>>();
 
             // Register Logger
             builder.Services.AddLogging();
 
             // Register stopwatch service
             builder.Services.AddScoped<StopwatchService>();
+
+            // Register BogusSeeder
+            builder.Services.AddScoped<BogusSeeder>();
 
             // Register Unit Of Work
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -111,21 +116,30 @@ namespace RestApi
                     var excelFilePaths = configuration.GetSection("SeedData:ExcelFilePaths").Get<List<string>>();
                     var seedDataFromFile = services.GetRequiredService<SeedDataFromFile>();
 
-                    StopwatchService.Start();
-
-                    foreach (var filePath in excelFilePaths)
+                    using (var stopwatchServiceScope = scope.ServiceProvider.CreateScope())
                     {
-                        await seedDataFromFile.InitializeAsync(filePath);
+                        var stopwatchService = stopwatchServiceScope.ServiceProvider.GetRequiredService<StopwatchService>();
+
+                        stopwatchService.Start();
+
+                        foreach(var filePath in excelFilePaths)
+                        {
+                            await seedDataFromFile.InitializeAsync(filePath);
+                        }
+
+                        stopwatchService.Stop();
+                        stopwatchService.LogElapsed("Seeding database from file completed", "seconds");
+
+                        stopwatchService.Start();
+                        var bogusSeeder = services.GetRequiredService<BogusSeeder>();
+                        bogusSeeder.Initialize(services);
+                        stopwatchService.Stop();
+                        stopwatchService.LogElapsed("Bogus seeding completed", "seconds");
                     }
-
-                    StopwatchService.Instance.Stop();
-                    StopwatchService.Instance.LogElapsed("Seeding database from file completed", "seconds");
-
-                    BogusSeeder.Initialize(services);
                 }
                 catch (Exception ex)
                 {
-
+                    throw new Exception("An error occurred while seeding the database", ex);
                 }
             }
         }

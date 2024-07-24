@@ -4,7 +4,7 @@ using Domain.Enums;
 
 namespace Application.Interfaces
 {
-    public interface IAccountService : ICRUDService<AccountOnlyDto, AccountFullDto, AccountCreateDto, AccountFullDto>
+    public interface IAccountService : ICRUDService<AccountOnlyDto, AccountFullDto, AccountCreateDto, AccountUpdateDto>
     {
         Task<IEnumerable<AccountOnlyDto>> GetByFieldAsync(AccountSearchableFields field, string value);
     }

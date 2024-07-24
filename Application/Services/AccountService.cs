@@ -13,10 +13,10 @@ namespace Application.Services
     {
         private readonly IMapper _mapper;
         private readonly IAccountRepository _accountRepository;
-        private readonly IPasswordHasher<object> _passwordHasher;
+        private readonly IPasswordHasher<UserAccount> _passwordHasher;
         private readonly ILogger<AccountService> _logger;
 
-        public AccountService(IMapper mapper, IAccountRepository accountRepository, IPasswordHasher<object> passwordHasher, ILogger<AccountService> logger)
+        public AccountService(IMapper mapper, IAccountRepository accountRepository, IPasswordHasher<UserAccount> passwordHasher, ILogger<AccountService> logger)
         {
             _mapper = mapper;
             _accountRepository = accountRepository;
@@ -63,12 +63,13 @@ namespace Application.Services
             await _accountRepository.CreateAsync(accountEntity);
         }
 
-        public async Task UpdateAsync(AccountFullDto account)
+        public async Task UpdateAsync(AccountUpdateDto account)
         {
             var existingAccount = await _accountRepository.GetByIdAsync(account.Id);
             if (existingAccount is not null)
             {
                 var accountEntity = _mapper.Map(account, existingAccount);
+                accountEntity.Password = _passwordHasher.HashPassword(existingAccount, account.Password);
                 await _accountRepository.UpdateAsync(accountEntity);
             }
             else

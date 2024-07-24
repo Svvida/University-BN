@@ -2,6 +2,6 @@
 {
     public interface IAuthenticationService
     {
-        bool ValidateUser(string username, string password);
+        Task<bool> ValidateUserAsync(string username, string password);
     }
 }
