@@ -1,62 +1,68 @@
 ﻿using Bogus;
-using Domain.Entities.AccountEntities;
 using Domain.Entities.EmployeeEntities;
 using Domain.Enums;
-using Infrastructure.Data;
+using Infrastructure.Seeding.Bogus.AccountSeeding;
 
 namespace Infrastructure.Seeding.Bogus.EmployeeSeeding
 {
-    public static class EmployeeSeeder
+    public class EmployeeSeeder
     {
-        public static List<Employee> GenerateEmployees(List<UserAccount> accounts, UniversityContext context)
+        private readonly AccountSeeder _accountSeeder;
+
+        public EmployeeSeeder(AccountSeeder accountSeeder)
         {
-
-            var addresses = GenerateAddresses(SeedingConstants.EmployeeSeedCount);
-            var consents = GenerateConsents(SeedingConstants.EmployeeSeedCount);
-
-            context.EmployeesAddresses.AddRange(addresses);
-            context.EmployeesConsents.AddRange(consents);
-            context.SaveChanges();
-
-            var employees = new Faker<Employee>()
-                .RuleFor(s => s.Id, f => Guid.NewGuid())
-                .RuleFor(s => s.Name, f => f.Name.FirstName())
-                .RuleFor(s => s.Surname, f => f.Name.LastName())
-                .RuleFor(s => s.DateOfBirth, f => f.Date.Past(20, DateTime.Now.AddYears(-18)))
-                .RuleFor(s => s.Gender, f => f.PickRandom<Gender>())
-                .RuleFor(s => s.ContactEmail, f => f.Internet.Email())
-                .RuleFor(s => s.ContactPhone, f => f.Phone.PhoneNumberFormat())
-                .RuleFor(s => s.DateOfAddmission, f => f.Date.Past(3))
-                .RuleFor(s => s.AddressId, (f, s) => addresses[f.IndexFaker & addresses.Count].Id)
-                .RuleFor(s => s.AccountId, (f, s) => accounts[f.IndexFaker & accounts.Count].Id)
-                .RuleFor(s => s.ConsentId, (f, s) => consents[f.IndexFaker & consents.Count].Id);
-
-            var generatedEmployees = employees.Generate(accounts.Count);
-
-            return generatedEmployees;
+            _accountSeeder = accountSeeder;
         }
-        private static List<EmployeeAddress> GenerateAddresses(int count)
+
+        public List<Employee> GenerateEmployees(int count)
         {
-            var addresses = new Faker<EmployeeAddress>()
+            var employees = new List<Employee>();
+
+            for (int i = 0; i < count; i++)
+            {
+                var employee = new Faker<Employee>()
+                    .RuleFor(s => s.Id, f => Guid.NewGuid())
+                    .RuleFor(s => s.Name, f => f.Name.FirstName())
+                    .RuleFor(s => s.Surname, f => f.Name.LastName())
+                    .RuleFor(s => s.DateOfBirth, f => f.Date.Past(20, DateTime.Now.AddYears(-18)))
+                    .RuleFor(s => s.Gender, f => f.PickRandom<Gender>())
+                    .RuleFor(s => s.ContactEmail, f => f.Internet.Email())
+                    .RuleFor(s => s.ContactPhone, f => f.Phone.PhoneNumberFormat())
+                    .RuleFor(s => s.DateOfAddmission, f => f.Date.Past(3))
+                    .Generate();
+
+                // Generate and associate account with employee
+                employee.Account = _accountSeeder.GenerateAccountForPerson(employee.Name, employee.Surname);
+
+                // Add additional related entities
+                employee.Address = GenerateAddress();
+                employee.Consent = GenerateConsent();
+
+                employees.Add(employee);
+            }
+
+            return employees;
+        }
+        private EmployeeAddress GenerateAddress()
+        {
+            return new Faker<EmployeeAddress>()
                 .RuleFor(s => s.Id, f => Guid.NewGuid())
                 .RuleFor(s => s.Country, f => f.Address.Country())
                 .RuleFor(s => s.City, f => f.Address.City())
                 .RuleFor(s => s.PostalCode, f => f.Address.ZipCode())
                 .RuleFor(s => s.Street, f => f.Address.StreetAddress())
                 .RuleFor(s => s.BuildingNumber, f => f.Address.BuildingNumber())
-                .RuleFor(s => s.ApartmentNumber, f => f.Random.Bool() ? f.Address.BuildingNumber() : null);
-
-            return addresses.Generate(count);
+                .RuleFor(s => s.ApartmentNumber, f => f.Random.Bool() ? f.Address.BuildingNumber() : null)
+                .Generate();
         }
 
-        private static List<EmployeeConsent> GenerateConsents(int count)
+        private EmployeeConsent GenerateConsent()
         {
-            var consents = new Faker<EmployeeConsent>()
+            return new Faker<EmployeeConsent>()
                 .RuleFor(sc => sc.Id, f => Guid.NewGuid())
                 .RuleFor(sc => sc.PermissionForPhoto, f => f.Random.Bool())
-                .RuleFor(sc => sc.PermissionForDataProcessing, f => f.Random.Bool());
-
-            return consents.Generate(count);
+                .RuleFor(sc => sc.PermissionForDataProcessing, f => f.Random.Bool())
+                .Generate();
         }
     }
 }

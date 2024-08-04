@@ -9,7 +9,7 @@ namespace Utilities
         private readonly Stopwatch _stopwatch;
         private readonly ILogger<StopwatchService> _logger;
 
-        private StopwatchService(ILogger<StopwatchService> logger)
+        public StopwatchService(ILogger<StopwatchService> logger)
         {
             _stopwatch = new Stopwatch();
             _logger = logger;

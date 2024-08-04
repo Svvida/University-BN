@@ -1,8 +1,11 @@
-﻿using Infrastructure.Data;
+﻿using Domain.Entities.AccountEntities;
+using Domain.Interfaces.Repositories;
+using Infrastructure.Data;
 using Infrastructure.Seeding.Bogus.AccountSeeding;
 using Infrastructure.Seeding.Bogus.EmployeeSeeding;
 using Infrastructure.Seeding.Bogus.StudentSeeding;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Utilities;
@@ -13,11 +16,19 @@ namespace Infrastructure.Seeding.Bogus
     {
         private readonly StopwatchService _stopwatchService;
         private readonly ILogger<BogusSeeder> _logger;
+        private readonly IPasswordHasher<UserAccount> _passwordHasher;
+        private readonly IAccountRepository _accountRepository;
 
-        public BogusSeeder(StopwatchService stopwatchService, ILogger<BogusSeeder> logger)
+        public BogusSeeder(
+            StopwatchService stopwatchService,
+            ILogger<BogusSeeder> logger,
+            IPasswordHasher<UserAccount> passwordHasher,
+            IAccountRepository accountRepository)
         {
             _stopwatchService = stopwatchService;
             _logger = logger;
+            _passwordHasher = passwordHasher;
+            _accountRepository = accountRepository;
         }
 
         public void Initialize(IServiceProvider serviceProvider)
@@ -26,32 +37,43 @@ namespace Infrastructure.Seeding.Bogus
             {
                 _stopwatchService.Start();
 
-                // Generate unique accounts
-                var accounts = AccountSeeder.GenerateAccounts(SeedingConstants.AccountSeedCount);
-                _stopwatchService.LogElapsed($"Generated {accounts.Count} accounts", "seconds");
+                // Initialize seeders
+                var accountSeeder = new AccountSeeder(_accountRepository, _passwordHasher);
+                var studentSeeder = new StudentSeeder(accountSeeder);
+                var employeeSeeder = new EmployeeSeeder(accountSeeder);
 
-                // Save accounts
-                context.UsersAccounts.AddRange(accounts);
+                // Generate Students and related data
+                var students = studentSeeder.GenerateStudents(SeedingConstants.StudentSeedCount);
+
+                // Retrieve all necessary data for enrollment
+                var degreeCourses = context.DegreeCourses
+                    .Include(dc => dc.Paths)
+                    .ThenInclude(p => p.Modules)
+                    .ToList();
+
+                // Enroll students in courses, paths, modules
+                studentSeeder.EnrollStudentsInCourses(students, degreeCourses);
+                studentSeeder.EnrollStudentsInPaths(students, degreeCourses);
+                studentSeeder.EnrollStudentsInModlues(students, degreeCourses);
+
+                // Save all data
+                context.Students.AddRange(students);
                 context.SaveChanges();
+                _stopwatchService.LogElapsed($"Generated and saved {students.Count} students and related entities", "seconds");
+
                 _stopwatchService.Stop();
-                _stopwatchService.LogElapsed($"Generated and saved {accounts.Count} accounts", "seconds");
 
-                // Generate Students
                 _stopwatchService.Start();
-                var students = StudentSeeder.GenerateStudents(accounts.Take(SeedingConstants.StudentSeedCount).ToList(), context);
-                _stopwatchService.Stop();
-                _stopwatchService.LogElapsed($"Generated and saved {students.Count} students", "seconds");
 
-                // Generate Employees
-                _stopwatchService.Start();
-                var employees = EmployeeSeeder.GenerateEmployees(accounts.Skip(SeedingConstants.EmployeeSeedCount).Take(SeedingConstants.EmployeeSeedCount).ToList(), context);
-                _stopwatchService.LogElapsed($"Generated {employees.Count} employees", "seconds");
+                // Generate Employees and related data
+                var employees = employeeSeeder.GenerateEmployees(SeedingConstants.EmployeeSeedCount);
 
-                // Save employees
+                // Save employees and related data
                 context.Employees.AddRange(employees);
                 context.SaveChanges();
+                _stopwatchService.LogElapsed($"Generated and saved {employees.Count} employees and related entities", "seconds");
+
                 _stopwatchService.Stop();
-                _stopwatchService.LogElapsed($"Generated and saved {employees.Count} employees", "seconds");
             }
         }
     }

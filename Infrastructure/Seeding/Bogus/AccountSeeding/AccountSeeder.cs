@@ -1,52 +1,59 @@
 ﻿using Bogus;
 using Domain.Entities.AccountEntities;
+using Domain.Interfaces.Repositories;
+using Microsoft.AspNetCore.Identity;
 
 namespace Infrastructure.Seeding.Bogus.AccountSeeding
 {
-    public static class AccountSeeder
+    public class AccountSeeder
     {
-        public static List<UserAccount> GenerateAccounts(int count)
-        {
-            var accounts = new List<UserAccount>();
-            var faker = new Faker<UserAccount>()
-                .RuleFor(a => a.Id, f => Guid.NewGuid())
-                .RuleFor(a => a.Login, f => f.Internet.UserName())
-                .RuleFor(a => a.Password, f => f.Internet.Password())
-                .RuleFor(a => a.Email, f => f.Internet.Email());
+        private readonly IAccountRepository _accountRepository;
+        private readonly IPasswordHasher<UserAccount> _passwordHasher;
+        private readonly HashSet<string> _exisitngUsernames;
 
-            for (int i = 0; i < count; i++)
-            {
-                var account = faker.Generate();
-                EnsureUniqueLogin(accounts, account);
-                EnsureUniqueEmail(accounts, account);
-                accounts.Add(account);
-            }
-            return accounts;
+        public AccountSeeder(IAccountRepository accountRepository, IPasswordHasher<UserAccount> passwordHasher)
+        {
+            _accountRepository = accountRepository;
+            _passwordHasher = passwordHasher;
+
+            // Load all exisitng usernames into memory for fast lookup
+            _exisitngUsernames = new HashSet<string>(_accountRepository.GetAllUsernames());
+
         }
 
-        private static void EnsureUniqueLogin(List<UserAccount> accounts, UserAccount account)
+        public UserAccount GenerateAccountForPerson(string firstName, string lastName)
         {
-            var originalLogin = account.Login;
-            var suffix = 1;
-            while (accounts.Any(a => a.Login == account.Login))
+            var account = new Faker<UserAccount>()
+                .RuleFor(ua => ua.Id, f => Guid.NewGuid())
+                .RuleFor(ua => ua.Login, f => GenerateUniqueLogin(firstName, lastName))
+                .RuleFor(ua => ua.Password, f => GenerateHashedPassword(f.Internet.Password()))
+                .RuleFor(ua => ua.Email, f => f.Internet.Email());
+
+            return account;
+        }
+        private string GenerateUniqueLogin(string firstName, string lastName)
+        {
+            var baseLogin = $"{firstName.ToLower()}.{lastName.ToLower()}";
+            var nextLogin = baseLogin;
+            int counter = 1;
+
+            // check in-memory collection for existing usernames
+            while (_exisitngUsernames.Contains(nextLogin))
             {
-                account.Login = originalLogin + suffix;
-                suffix++;
+                nextLogin = $"{baseLogin}{counter}";
+                counter++;
             }
+
+            //Add newly created unique login to the in-memory set
+            _exisitngUsernames.Add(nextLogin);
+
+            return nextLogin;
         }
 
-        private static void EnsureUniqueEmail(List<UserAccount> accounts, UserAccount account)
+        private string GenerateHashedPassword(string plainPassword)
         {
-            var originalEmail = account.Email;
-            var atIndex = originalEmail.IndexOf("@");
-            var prefix = originalEmail.Substring(0, atIndex);
-            var domain = originalEmail.Substring(atIndex);
-            var suffix = 1;
-            while (accounts.Any(a => a.Email == account.Email))
-            {
-                account.Email = prefix + suffix + domain;
-                suffix++;
-            }
+            var dummyUser = new UserAccount();
+            return _passwordHasher.HashPassword(dummyUser, plainPassword);
         }
     }
 }

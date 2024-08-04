@@ -1,97 +1,89 @@
 ﻿using Bogus;
-using Domain.Entities.AccountEntities;
+using Domain.Entities.EducationEntities;
 using Domain.Entities.StudentEntities;
 using Domain.Enums;
-using Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
+using Infrastructure.Seeding.Bogus.AccountSeeding;
 
 namespace Infrastructure.Seeding.Bogus.StudentSeeding
 {
-    public static class StudentSeeder
+    public class StudentSeeder
     {
-        public static List<Student> GenerateStudents(List<UserAccount> accounts, UniversityContext context)
+        private readonly AccountSeeder _accountSeeder;
+
+        public StudentSeeder(AccountSeeder accountSeeder)
         {
-
-            var addresses = GenerateAddresses(SeedingConstants.StudentSeedCount);
-            var consents = GenerateConsents(SeedingConstants.StudentSeedCount);
-
-            context.StudentsAddresses.AddRange(addresses);
-            context.StudentsConsents.AddRange(consents);
-            context.SaveChanges();
-
-            var students = new Faker<Student>()
-                .RuleFor(s => s.Id, f => Guid.NewGuid())
-                .RuleFor(s => s.Name, f => f.Name.FirstName())
-                .RuleFor(s => s.Surname, f => f.Name.LastName())
-                .RuleFor(s => s.DateOfBirth, f => f.Date.Past(20, DateTime.Now.AddYears(-18)))
-                .RuleFor(s => s.Gender, f => f.PickRandom<Gender>())
-                .RuleFor(s => s.ContactEmail, f => f.Internet.Email())
-                .RuleFor(s => s.ContactPhone, f => f.Phone.PhoneNumberFormat())
-                .RuleFor(s => s.DateOfAddmission, f => f.Date.Past(3))
-                .RuleFor(s => s.AddressId, (f, s) => addresses[f.IndexFaker % addresses.Count].Id)
-                .RuleFor(s => s.AccountId, (f, s) => accounts[f.IndexFaker % accounts.Count].Id)
-                .RuleFor(s => s.ConsentId, (f, s) => consents[f.IndexFaker % consents.Count].Id);
-
-            var generatedStudents = students.Generate(accounts.Count);
-
-            context.Students.AddRange(generatedStudents);
-            context.SaveChanges();
-
-            EnrollStudentsInCourses(context, generatedStudents);
-
-            EnrollStudentsInPaths(context, generatedStudents);
-
-            EnrollStudentsInModlues(context, generatedStudents);
-
-            context.SaveChanges();
-
-            return generatedStudents;
+            _accountSeeder = accountSeeder;
         }
 
-        private static List<StudentAddress> GenerateAddresses(int count)
+        public List<Student> GenerateStudents(int count)
         {
-            var addresses = new Faker<StudentAddress>()
+            var students = new List<Student>();
+
+            for (int i = 0; i < count; i++)
+            {
+                var student = new Faker<Student>()
+                    .RuleFor(s => s.Id, f => Guid.NewGuid())
+                    .RuleFor(s => s.Name, f => f.Name.FirstName())
+                    .RuleFor(s => s.Surname, f => f.Name.LastName())
+                    .RuleFor(s => s.DateOfBirth, f => f.Date.Past(20, DateTime.Now.AddYears(-18)))
+                    .RuleFor(s => s.Gender, f => f.PickRandom<Gender>())
+                    .RuleFor(s => s.ContactEmail, f => f.Internet.Email())
+                    .RuleFor(s => s.ContactPhone, f => f.Phone.PhoneNumberFormat())
+                    .RuleFor(s => s.DateOfAddmission, f => f.Date.Past(3))
+                    .Generate();
+
+                // Generate and associate account with student
+                student.Account = _accountSeeder.GenerateAccountForPerson(student.Name, student.Surname);
+
+                // Add additional related entities
+                student.Address = GenerateAddress();
+                student.Consent = GenerateConsent();
+
+                students.Add(student);
+            }
+
+            return students;
+        }
+
+        private StudentAddress GenerateAddress()
+        {
+            return new Faker<StudentAddress>()
                 .RuleFor(s => s.Id, f => Guid.NewGuid())
                 .RuleFor(s => s.Country, f => f.Address.Country())
                 .RuleFor(s => s.City, f => f.Address.City())
                 .RuleFor(s => s.PostalCode, f => f.Address.ZipCode())
                 .RuleFor(s => s.Street, f => f.Address.StreetAddress())
                 .RuleFor(s => s.BuildingNumber, f => f.Address.BuildingNumber())
-                .RuleFor(s => s.ApartmentNumber, f => f.Random.Bool() ? f.Address.BuildingNumber() : null);
-
-            return addresses.Generate(count);
+                .RuleFor(s => s.ApartmentNumber, f => f.Random.Bool() ? f.Address.BuildingNumber() : null)
+                .Generate();
         }
 
-        private static List<StudentConsent> GenerateConsents(int count)
+        private StudentConsent GenerateConsent()
         {
-            var consents = new Faker<StudentConsent>()
+            return new Faker<StudentConsent>()
                 .RuleFor(sc => sc.Id, f => Guid.NewGuid())
                 .RuleFor(sc => sc.PermissionForPhoto, f => f.Random.Bool())
-                .RuleFor(sc => sc.PermissionForDataProcessing, f => f.Random.Bool());
-
-            return consents.Generate(count);
+                .RuleFor(sc => sc.PermissionForDataProcessing, f => f.Random.Bool())
+                .Generate();
         }
 
-        private static void EnrollStudentsInCourses(UniversityContext context, List<Student> students)
+        public void EnrollStudentsInCourses(List<Student> students, List<DegreeCourse> courses)
         {
-            var degreeCourses = context.DegreeCourses.Include(dc => dc.Paths).ToList();
-
             var random = new Random();
 
             foreach (var student in students)
             {
-                var selectedCourse = degreeCourses[random.Next(degreeCourses.Count)];
+                var selectedCourse = courses[random.Next(courses.Count)];
                 var studentDegreeCourse = new StudentDegreeCourse
                 {
                     StudentId = student.Id,
                     DegreeCourseId = selectedCourse.Id
                 };
-                context.StudentDegreeCourses.Add(studentDegreeCourse);
                 student.StudentDegreeCourses.Add(studentDegreeCourse);
             }
         }
 
-        private static void EnrollStudentsInPaths(UniversityContext context, List<Student> students)
+        public void EnrollStudentsInPaths(List<Student> students, List<DegreeCourse> courses)
         {
             var random = new Random();
 
@@ -100,23 +92,24 @@ namespace Infrastructure.Seeding.Bogus.StudentSeeding
                 var studentDegreeCourse = student.StudentDegreeCourses.FirstOrDefault();
                 if (studentDegreeCourse is not null)
                 {
-                    var degreePaths = context.DegreePaths.Where(dp => dp.DegreeCourseId == studentDegreeCourse.DegreeCourseId).ToList();
-                    if (degreePaths.Any())
+                    var degreePaths = courses.FirstOrDefault(dc => dc.Id == studentDegreeCourse.DegreeCourseId)?.Paths;
+
+
+                    if (degreePaths is not null && degreePaths.Any())
                     {
-                        var selectedPath = degreePaths[random.Next(degreePaths.Count)];
+                        var selectedPath = degreePaths.ElementAt(random.Next(degreePaths.Count));
                         var studentDegreePath = new StudentDegreePath
                         {
                             StudentId = student.Id,
                             DegreePathId = selectedPath.Id
                         };
-                        context.StudentDegreePaths.Add(studentDegreePath);
                         student.studentDegreePaths.Add(studentDegreePath);
                     }
                 }
             }
         }
 
-        private static void EnrollStudentsInModlues(UniversityContext context, List<Student> students)
+        public void EnrollStudentsInModlues(List<Student> students, List<DegreeCourse> courses)
         {
             var random = new Random();
 
@@ -125,7 +118,11 @@ namespace Infrastructure.Seeding.Bogus.StudentSeeding
                 var studentDegreePath = student.studentDegreePaths.FirstOrDefault();
                 if (studentDegreePath is not null)
                 {
-                    var modules = context.Modules.Where(m => m.DegreePathId == studentDegreePath.DegreePathId).ToList();
+                    var modules = courses.SelectMany(dc => dc.Paths)
+                        .Where(dp => dp.Id == studentDegreePath.DegreePathId)
+                        .SelectMany(dp => dp.Modules)
+                        .ToList();
+
                     if (modules.Any())
                     {
                         var selectedModule = modules[random.Next(modules.Count)];
@@ -134,7 +131,6 @@ namespace Infrastructure.Seeding.Bogus.StudentSeeding
                             StudentId = student.Id,
                             ModuleId = selectedModule.Id,
                         };
-                        context.StudentModules.Add(studentModule);
                         student.StudentModules.Add(studentModule);
                     }
                 }

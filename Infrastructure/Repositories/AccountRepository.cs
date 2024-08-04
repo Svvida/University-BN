@@ -110,8 +110,13 @@ namespace Infrastructure.Repositories
             }
             else
             {
-                throw new KeyNotFoundException("Account not found");
+                return null;
             }
+        }
+
+        public IEnumerable<string> GetAllUsernames()
+        {
+            return _context.UsersAccounts.Select(ua => ua.Login).ToList();
         }
     }
 }

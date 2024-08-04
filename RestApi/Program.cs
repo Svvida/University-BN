@@ -1,5 +1,6 @@
 
 using Application.Interfaces;
+using Application.Mappers;
 using Application.Services;
 using Domain.Entities.AccountEntities;
 using Domain.Interfaces;
@@ -11,10 +12,13 @@ using Infrastructure.Repositories.RepositoriesBase;
 using Infrastructure.Seeding;
 using Infrastructure.Seeding.Bogus;
 using Infrastructure.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using OfficeOpenXml;
 using Serilog;
+using System.Text;
 using Utilities;
 
 namespace RestApi
@@ -59,6 +63,9 @@ namespace RestApi
             // Add configuration
             var configuration = builder.Configuration;
 
+            // Add environment variables
+            builder.Configuration.AddEnvironmentVariables();
+
             // Configure DbContext
             var connextionString = builder.Configuration.GetConnectionString("DefaultConnection");
             builder.Services.AddDbContext<UniversityContext>(options =>
@@ -76,9 +83,16 @@ namespace RestApi
 
             // Register Services
             builder.Services.AddScoped<IAccountService, AccountService>();
+            builder.Services.AddScoped<ILoginService, LoginService>();
+            builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+            builder.Services.AddScoped<IJwtService, JwtService>();
+
 
             // Register password hasher
             builder.Services.AddSingleton<IPasswordHasher<UserAccount>, PasswordHasher<UserAccount>>();
+
+            // Register AutoMapper
+            builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
 
             // Register Logger
             builder.Services.AddLogging();
@@ -98,6 +112,29 @@ namespace RestApi
             // Register ExcelService
             builder.Services.AddScoped<ExcelService>();
 
+            // Configure JWT Authentication
+            builder.Services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+                    ValidateIssuerSigningKey = true,
+                    ValidIssuer = configuration["Jwt:Issuer"],
+                    ValidAudience = configuration["Jwt:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"]))
+                };
+            });
+
+            // Register JWT Service
+            builder.Services.AddScoped<JwtService>();
+
             // Pass EPPlus configuration to Infrastucture layer
             ExcelPackage.LicenseContext = configuration.GetSection("EPPlus:ExcelPackage").Get<LicenseContext>();
         }
@@ -111,7 +148,7 @@ namespace RestApi
 
                 try
                 {
-                    RoleSeeding.Initialize(services);
+                    SeedConstants.Initialize(services);
 
                     var excelFilePaths = configuration.GetSection("SeedData:ExcelFilePaths").Get<List<string>>();
                     var seedDataFromFile = services.GetRequiredService<SeedDataFromFile>();
@@ -122,7 +159,7 @@ namespace RestApi
 
                         stopwatchService.Start();
 
-                        foreach(var filePath in excelFilePaths)
+                        foreach (var filePath in excelFilePaths)
                         {
                             await seedDataFromFile.InitializeAsync(filePath);
                         }
@@ -154,6 +191,7 @@ namespace RestApi
             }
 
             app.UseHttpsRedirection();
+            app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
         }

@@ -28,5 +28,10 @@ namespace Infrastructure.Services
 
             return result == PasswordVerificationResult.Success;
         }
+
+        public async Task<UserAccount> GetUserAsync(string username)
+        {
+            return await _accountRepository.GetByUsername(username);
+        }
     }
 }
