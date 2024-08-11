@@ -1,7 +1,10 @@
 ﻿using Domain.Entities.AccountEntities;
 using Domain.Entities.EducationEntities;
 using Domain.Entities.EmployeeEntities;
+using Domain.Entities.EventEntities;
+using Domain.Entities.ExternalEntities;
 using Domain.Entities.StudentEntities;
+using Domain.EntitiesBase;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Data
@@ -26,6 +29,12 @@ namespace Infrastructure.Data
         public DbSet<StudentModule> StudentModules { get; set; }
         public DbSet<UserAccount> UsersAccounts { get; set; }
         public DbSet<UserAccountRole> UsersAccountsRoles { get; set; }
+        public DbSet<Event> Events { get; set; }
+        public DbSet<EventOrganizer> EventOrganizers { get; set; }
+        public DbSet<EventOrganizerEvents> EventOrganizerEvents { get; set; }
+        public DbSet<Company> Companies { get; set; }
+        public DbSet<ExternalParticipant> ExternalParticipants { get; set; }
+        public DbSet<ExternalParticipantComanies> ExternalParticipantComanies { get; set; }
 
         public UniversityContext(DbContextOptions<UniversityContext> options) : base(options)
         {
@@ -51,8 +60,12 @@ namespace Infrastructure.Data
             modelBuilder.Entity<StudentConsent>().ToTable("Students_Consents");
             modelBuilder.Entity<UserAccount>().ToTable("Users_Accounts");
             modelBuilder.Entity<UserAccountRole>().ToTable("Users_Accounts_Roles");
-
-            // Define Employee properties
+            modelBuilder.Entity<Event>().ToTable("Events");
+            modelBuilder.Entity<EventOrganizer>().ToTable("Events_Organizers");
+            modelBuilder.Entity<EventOrganizerEvents>().ToTable("Events_Organizers_Events");
+            modelBuilder.Entity<Company>().ToTable("Companies");
+            modelBuilder.Entity<ExternalParticipant>().ToTable("External_Participants");
+            modelBuilder.Entity<ExternalParticipantComanies>().ToTable("External_Participants_Companies");
 
             // Many-to-many relationship between Student and DegreeCourse
             modelBuilder.Entity<StudentDegreeCourse>()
@@ -185,6 +198,83 @@ namespace Infrastructure.Data
                 .HasOne(ua => ua.Student)
                 .WithOne(s => s.Account)
                 .HasForeignKey<Student>(s => s.AccountId);
+
+            // Many-to-many relationship between Event and EventOrganizer
+            modelBuilder.Entity<EventOrganizerEvents>()
+                .HasKey(eoe => new { eoe.EventId, eoe.EventOrganizerId });
+
+            modelBuilder.Entity<EventOrganizerEvents>()
+                .HasOne(eoe => eoe.Event)
+                .WithMany(e => e.EventOrganizersEvents)
+                .HasForeignKey(eoe => eoe.EventId);
+
+            modelBuilder.Entity<EventOrganizerEvents>()
+                .HasOne(eoe => eoe.EventOrganizer)
+                .WithMany(eo => eo.EventOrganizersEvents)
+                .HasForeignKey(eoe => eoe.EventOrganizerId);
+
+            // Many-to-many relationship between Company and ExternalParticipant
+            modelBuilder.Entity<ExternalParticipantComanies>()
+                .HasKey(epc => new { epc.CompanyId, epc.ExternalParticipantId });
+
+            modelBuilder.Entity<ExternalParticipantComanies>()
+                .HasOne(epc => epc.Company)
+                .WithMany(c => c.ExternalParticipantComanies)
+                .HasForeignKey(epc => epc.CompanyId);
+
+            modelBuilder.Entity<ExternalParticipantComanies>()
+                .HasOne(epc => epc.ExternalParticipant)
+                .WithMany(ep => ep.ExternalParticipantComanies)
+                .HasForeignKey(epc => epc.ExternalParticipantId);
+
+            // One-to-one relationship between EventOrganizer and UserAccount
+            modelBuilder.Entity<UserAccount>()
+                .HasOne(ua => ua.EventOrganizer)
+                .WithOne(eo => eo.Account)
+                .HasForeignKey<EventOrganizer>(eo => eo.AccountId);
+
+            // One-to-one relationship between Company and UserAccount
+            modelBuilder.Entity<UserAccount>()
+                .HasOne(ua => ua.Company)
+                .WithOne(c => c.Account)
+                .HasForeignKey<Company>(c => c.AccountId);
+
+            // One-to-one relationship between ExternalParticipant and UserAccount
+            modelBuilder.Entity<UserAccount>()
+                .HasOne(ua => ua.ExternalParticipant)
+                .WithOne(ep => ep.Account)
+                .HasForeignKey<ExternalParticipant>(ep => ep.AccountId);
         }
+
+        // Override the SaveChanges method
+        public override int SaveChanges()
+        {
+            UpdateTimestamps();
+            return base.SaveChanges();
+        }
+
+        // Override the SaveChangesAsymc method
+        public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
+        {
+            UpdateTimestamps();
+            return await base.SaveChangesAsync(cancellationToken);
+        }
+
+        private void UpdateTimestamps()
+        {
+            var entries = ChangeTracker
+                .Entries<AuditableEntity>()
+                .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified);
+
+            foreach (var entry in entries)
+            {
+                if(entry.State == EntityState.Added)
+                {
+                    entry.Entity.CreatedAt = DateTime.UtcNow;
+                }
+
+                entry.Entity.UpdatedAt = DateTime.UtcNow;
+            }
+        } 
     }
 }

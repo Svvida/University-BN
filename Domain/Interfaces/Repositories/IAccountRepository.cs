@@ -1,5 +1,5 @@
 ﻿using Domain.Entities.AccountEntities;
-using Domain.Enums;
+using Domain.Enums.SearchableFields;
 
 namespace Domain.Interfaces.Repositories
 {
@@ -12,6 +12,7 @@ namespace Domain.Interfaces.Repositories
         Task UpdateAsync(UserAccount userAccount);
         Task DeleteAsync(Guid id);
         Task<UserAccount> GetByUsername(string username);
+        Task<UserAccount?> GetByRefreshTokenAsync(string refreshToken);
 
         IEnumerable<string> GetAllUsernames();
     }

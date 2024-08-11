@@ -1,16 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Domain.EntitiesBase;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Domain.Entities.EventEntities
 {
-    public class Event
+    public class Event : AuditableEntity
     {
         [Key]
         public Guid Id { get; set; }
-        private DateTime CreatedAt { get; } = DateTime.Now;
+        [Required]
+        public DateTime StartDate { get; set; }
+        [Required]
+        public DateTime EndDate { get; set; }
+        [Required]
+        [StringLength(1000, MinimumLength = 10)]
+        public string Description { get; set; }
+        public ICollection<EventOrganizerEvents> EventOrganizersEvents { get; set; } = new List<EventOrganizerEvents>();
+
+        public Event() { }
+
+        public Event(Guid id, DateTime startDate, DateTime endDate, string description)
+        {
+            Id = id;
+            StartDate = startDate;
+            EndDate = endDate;
+            Description = description;
+        }
     }
 }

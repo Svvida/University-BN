@@ -1,5 +1,5 @@
 ﻿using Domain.Entities.AccountEntities;
-using Domain.Enums;
+using Domain.Enums.SearchableFields;
 using Domain.Interfaces.Repositories;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -65,7 +65,7 @@ namespace Infrastructure.Repositories
             if (account is not null)
             {
                 await _context.UsersAccounts.AddAsync(account);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(CancellationToken.None);
             }
             else
             {
@@ -78,7 +78,7 @@ namespace Infrastructure.Repositories
             if (account is not null)
             {
                 _context.UsersAccounts.Update(account);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(CancellationToken.None);
             }
             else
             {
@@ -92,7 +92,7 @@ namespace Infrastructure.Repositories
             if (account is not null)
             {
                 _context.UsersAccounts.Remove(account);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(CancellationToken.None);
             }
             else
             {
@@ -117,6 +117,11 @@ namespace Infrastructure.Repositories
         public IEnumerable<string> GetAllUsernames()
         {
             return _context.UsersAccounts.Select(ua => ua.Login).ToList();
+        }
+
+        public async Task<UserAccount?> GetByRefreshTokenAsync(string refreshToken)
+        {
+            return await _context.UsersAccounts.FirstOrDefaultAsync(ua => ua.RefreshToken == refreshToken);
         }
     }
 }

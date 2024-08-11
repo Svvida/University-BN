@@ -37,7 +37,7 @@ namespace Infrastructure.Repositories
             if (role is not null)
             {
                 await _context.Roles.AddAsync(role);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(CancellationToken.None);
             }
             else
             {
@@ -50,7 +50,7 @@ namespace Infrastructure.Repositories
             if (role is not null)
             {
                 _context.Roles.Update(role);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(CancellationToken.None);
             }
             else { throw new ArgumentNullException("Role cannot be null"); }
         }
@@ -61,7 +61,7 @@ namespace Infrastructure.Repositories
             if (role is not null)
             {
                 _context.Roles.Remove(role);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(CancellationToken.None);
             }
             else
             {

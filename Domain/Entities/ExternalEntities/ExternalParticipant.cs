@@ -1,38 +1,18 @@
 ﻿using Domain.Entities.AccountEntities;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Domain.EntitiesBase;
 
 namespace Domain.Entities.ExternalEntities
 {
-    public class ExternalParticipant
+    public class ExternalParticipant : PersonBase
     {
-        [Key]
-        public Guid Id { get; set; }
-        [Required]
-        public string Name { get; set; }
-        [Required]
-        public string Surename {  get; set; }
-        [EmailAddress]
-        public string ContactEmail { get; set; }
-        [Phone]
-        public string ContactPhone { get; set; }
-        public Guid? AccountId {  get; set; }
         public UserAccount Account { get; set; }
+        public ICollection<ExternalParticipantComanies> ExternalParticipantComanies { get; set; } = new List<ExternalParticipantComanies>();
 
+        public ExternalParticipant() : base() { }
 
-        public ExternalParticipant() { }
-
-        public ExternalParticipant(Guid id, string name, string contactEmail, string contactPhone, Guid? accountId)
+        public ExternalParticipant(Guid id, string name, string surname, string contactEmail, string contactPhone, Guid? accountId)
+            : base(id, name, surname, contactEmail, contactPhone, accountId)
         {
-            Id = id;
-            Name = name;
-            ContactEmail = contactEmail;
-            ContactPhone = contactPhone;
-            AccountId = accountId;
         }
     }
 }

@@ -6,5 +6,6 @@ namespace Domain.Interfaces
     {
         Task<bool> ValidateUserAsync(string username, string password);
         Task<UserAccount> GetUserAsync(string username);
+        Task<UserAccount?> ValidateRefreshTokenAsync(string refreshToken);
     }
 }

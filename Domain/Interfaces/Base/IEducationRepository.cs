@@ -1,6 +1,6 @@
 ﻿using Domain.Entities.EducationEntities;
 using Domain.EntitiesBase;
-using Domain.Enums;
+using Domain.Enums.SearchableFields;
 
 namespace Domain.Interfaces.InterfacesBase
 {

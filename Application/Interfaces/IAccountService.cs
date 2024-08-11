@@ -1,6 +1,6 @@
 ﻿using Application.DTOs.Account.Dtos;
 using Application.Interfaces.IGenericServices;
-using Domain.Enums;
+using Domain.Enums.SearchableFields;
 
 namespace Application.Interfaces
 {

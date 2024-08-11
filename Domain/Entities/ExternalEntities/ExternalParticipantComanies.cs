@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Domain.Entities.ExternalEntities
 {
@@ -14,7 +9,7 @@ namespace Domain.Entities.ExternalEntities
         public ExternalParticipant? ExternalParticipant { get; set; }
         [Required]
         public Guid CompanyId { get; set; }
-        public Company Company { get; set; }
+        public Company? Company { get; set; }
 
         public ExternalParticipantComanies() { }
 

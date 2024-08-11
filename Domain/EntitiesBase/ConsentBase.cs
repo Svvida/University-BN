@@ -2,7 +2,7 @@
 
 namespace Domain.EntitiesBase
 {
-    public abstract class ConsentBase
+    public abstract class ConsentBase : AuditableEntity
     {
         [Key]
         public Guid Id { get; set; }

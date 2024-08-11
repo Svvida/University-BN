@@ -2,7 +2,7 @@
 using Application.Interfaces;
 using AutoMapper;
 using Domain.Entities.AccountEntities;
-using Domain.Enums;
+using Domain.Enums.SearchableFields;
 using Domain.Interfaces.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;

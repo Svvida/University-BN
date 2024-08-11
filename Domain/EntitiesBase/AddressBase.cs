@@ -2,7 +2,7 @@
 
 namespace Domain.EntitiesBase
 {
-    public abstract class AddressBase
+    public abstract class AddressBase : AuditableEntity
     {
         [Key]
         public Guid Id { get; set; }

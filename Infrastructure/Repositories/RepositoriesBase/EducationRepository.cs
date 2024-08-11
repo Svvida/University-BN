@@ -1,6 +1,6 @@
 ﻿using Domain.Entities.EducationEntities;
 using Domain.EntitiesBase;
-using Domain.Enums;
+using Domain.Enums.SearchableFields;
 using Domain.Interfaces.InterfacesBase;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -69,7 +69,7 @@ namespace Infrastructure.Repositories.RepositoriesBase
             }
 
             await _educations.AddAsync(education);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(CancellationToken.None);
         }
 
         public async Task UpdateAsync(T education)
@@ -80,7 +80,7 @@ namespace Infrastructure.Repositories.RepositoriesBase
             }
 
             _educations.Update(education);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(CancellationToken.None);
         }
 
         public async Task DeleteAsync(Guid id)
@@ -89,7 +89,7 @@ namespace Infrastructure.Repositories.RepositoriesBase
             if (education is not null)
             {
                 _educations.Remove(education);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(CancellationToken.None);
             }
             else
             {
@@ -120,7 +120,7 @@ namespace Infrastructure.Repositories.RepositoriesBase
             }
 
             await _educations.AddRangeAsync(entities);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(CancellationToken.None);
         }
     }
 
@@ -148,13 +148,13 @@ namespace Infrastructure.Repositories.RepositoriesBase
         public async Task CreateAsync(ModuleSubject moduleSubject)
         {
             await _moduleSubjects.AddAsync(moduleSubject);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(CancellationToken.None);
         }
 
         public async Task AddRangeAsync(IEnumerable<ModuleSubject> moduleSubjects)
         {
             await _moduleSubjects.AddRangeAsync(moduleSubjects);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(CancellationToken.None);
         }
 
         public async Task<ModuleSubject> FindAsync(Func<ModuleSubject, bool> predicate)
@@ -197,13 +197,13 @@ namespace Infrastructure.Repositories.RepositoriesBase
         public async Task CreateAsync(DegreeCourseSubject degreeCourseSubject)
         {
             await _degreeCourseSubjects.AddAsync(degreeCourseSubject);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(CancellationToken.None);
         }
 
         public async Task AddRangeAsync(IEnumerable<DegreeCourseSubject> degreeCourseSubjects)
         {
             await _degreeCourseSubjects.AddRangeAsync(degreeCourseSubjects);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(CancellationToken.None);
         }
 
         public async Task<DegreeCourseSubject> FindAsync(Func<DegreeCourseSubject, bool> predicate)

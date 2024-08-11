@@ -41,7 +41,7 @@ namespace Infrastructure.Repositories.RepositoriesBase
                 throw new ArgumentNullException(nameof(consent), "Consent cannot be null");
             }
             await _consents.AddAsync(consent);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(CancellationToken.None);
         }
 
         public async Task UpdateAsync(T consent)
@@ -51,7 +51,7 @@ namespace Infrastructure.Repositories.RepositoriesBase
                 throw new ArgumentNullException(nameof(consent), "Consent cannot be null");
             }
             _consents.Update(consent);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(CancellationToken.None);
         }
 
         public async Task DeleteAsync(Guid id)
@@ -60,7 +60,7 @@ namespace Infrastructure.Repositories.RepositoriesBase
             if (consent is not null)
             {
                 _consents.Remove(consent);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(CancellationToken.None);
             }
             else
             {
@@ -90,7 +90,7 @@ namespace Infrastructure.Repositories.RepositoriesBase
             }
 
             _consents.Update(consent);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(CancellationToken.None);
         }
     }
 }

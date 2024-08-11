@@ -57,6 +57,8 @@ namespace RestApi
         {
             // Add services to the container
             builder.Services.AddControllers();
+
+            // Add Swagger
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
@@ -73,13 +75,14 @@ namespace RestApi
                 .EnableSensitiveDataLogging(false)
                 .LogTo(Console.WriteLine, LogLevel.Warning));
 
-            // Register Repositories
+            // Register Infrastructure Services
             builder.Services.AddScoped(typeof(IAddressRepository<>), typeof(AddressRepository<>));
             builder.Services.AddScoped(typeof(IConsentRepository<>), typeof(ConsentRepository<>));
             builder.Services.AddScoped(typeof(IEducationRepository<>), typeof(EducationRepository<>));
             builder.Services.AddScoped(typeof(IPersonRepository<>), typeof(PersonRepository<>));
             builder.Services.AddScoped<IAccountRepository, AccountRepository>();
             builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+            builder.Services.AddScoped<HttpJwtService>();
 
             // Register Services
             builder.Services.AddScoped<IAccountService, AccountService>();

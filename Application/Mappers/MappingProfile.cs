@@ -17,7 +17,7 @@ namespace Application.Mappers
         public MappingProfile()
         {
             // Base Person to PersonOnlyDto
-            CreateMap<PersonBase, PersonOnlyDto>().IncludeAllDerived();
+            CreateMap<PersonExtendedBase, PersonOnlyDto>().IncludeAllDerived();
 
             // Specific mappings for derived types
             CreateMap<Student, StudentOnlyDto>();

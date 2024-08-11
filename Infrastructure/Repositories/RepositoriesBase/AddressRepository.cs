@@ -1,5 +1,5 @@
 ﻿using Domain.EntitiesBase;
-using Domain.Enums;
+using Domain.Enums.SearchableFields;
 using Domain.Interfaces.InterfacesBase;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -72,13 +72,13 @@ namespace Infrastructure.Repositories.RepositoriesBase
         public async Task CreateAsync(T address)
         {
             await _addresses.AddAsync(address);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(CancellationToken.None);
         }
 
         public async Task UpdateAsync(T address)
         {
             _addresses.Update(address);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(CancellationToken.None);
         }
 
         public async Task DeleteAsync(Guid id)
@@ -87,7 +87,7 @@ namespace Infrastructure.Repositories.RepositoriesBase
             if (address is not null)
             {
                 _addresses.Remove(address);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(CancellationToken.None);
             }
             else
             {

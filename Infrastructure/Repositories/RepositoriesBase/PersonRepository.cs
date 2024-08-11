@@ -1,12 +1,12 @@
 ﻿using Domain.EntitiesBase;
-using Domain.Enums;
+using Domain.Enums.SearchableFields;
 using Domain.Interfaces.InterfacesBase;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Repositories.RepositoriesBase
 {
-    public class PersonRepository<T> : IPersonRepository<T> where T : PersonBase
+    public class PersonRepository<T> : IPersonRepository<T> where T : PersonExtendedBase
     {
         private readonly UniversityContext _context;
         private readonly DbSet<T> _persons;
@@ -78,7 +78,7 @@ namespace Infrastructure.Repositories.RepositoriesBase
                 throw new ArgumentNullException(nameof(person), $"{typeof(T).Name} cannot be null");
             }
             await _persons.AddAsync(person);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(CancellationToken.None);
         }
 
         public async Task UpdateAsync(T person)
@@ -88,7 +88,7 @@ namespace Infrastructure.Repositories.RepositoriesBase
                 throw new ArgumentNullException(nameof(person), $"{typeof(T).Name} cannot be null");
             }
             _persons.Update(person);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(CancellationToken.None);
         }
 
         public async Task DeleteAsync(Guid id)
@@ -97,12 +97,29 @@ namespace Infrastructure.Repositories.RepositoriesBase
             if (person is not null)
             {
                 _persons.Remove(person);
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(CancellationToken.None);
             }
             else
             {
                 throw new KeyNotFoundException($"No {typeof(T).Name} found with ID: {id}");
             }
+        }
+
+        public async Task<T> GetByAccountIdAsync(Guid accountId)
+        {
+            if (accountId.ToString() is null)
+            {
+                throw new ArgumentNullException($"{nameof(accountId)}, for {typeof(T).Name} cannot be null");
+            }
+
+            var account = await _persons.FirstOrDefaultAsync(p => p.AccountId == accountId);
+
+            if (account is null)
+            {
+                throw new KeyNotFoundException($"No {typeof(T).Name} not found with ID: {accountId}");
+            }
+
+            return account;
         }
     }
 }

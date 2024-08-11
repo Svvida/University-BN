@@ -1,4 +1,4 @@
-﻿namespace Domain.Enums
+﻿namespace Domain.Enums.SearchableFields
 {
     public enum AddressSearchableFields
     {

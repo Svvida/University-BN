@@ -1,5 +1,5 @@
 ﻿using Domain.EntitiesBase;
-using Domain.Enums;
+using Domain.Enums.SearchableFields;
 
 namespace Domain.Interfaces.InterfacesBase
 {
@@ -11,5 +11,6 @@ namespace Domain.Interfaces.InterfacesBase
         Task CreateAsync(T person);
         Task UpdateAsync(T person);
         Task DeleteAsync(Guid id);
+        Task<T> GetByAccountIdAsync(Guid accountId);
     }
 }

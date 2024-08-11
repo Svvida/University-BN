@@ -30,7 +30,7 @@ namespace Infrastructure.Seeding
 
         public async Task<int> CompleteAsync()
         {
-            return await _context.SaveChangesAsync();
+            return await _context.SaveChangesAsync(CancellationToken.None);
         }
     }
 }

@@ -33,5 +33,16 @@ namespace Infrastructure.Services
         {
             return await _accountRepository.GetByUsername(username);
         }
+
+        public async Task<UserAccount?> ValidateRefreshTokenAsync(string refreshToken)
+        {
+            var account = await _accountRepository.GetByRefreshTokenAsync(refreshToken);
+            if (account is null)
+            {
+                return null;
+            }
+
+            return account;
+        }
     }
 }

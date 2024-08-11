@@ -1,5 +1,5 @@
 ﻿using Application.DTOs.BaseDtos;
-using Domain.Enums;
+using Domain.Enums.SearchableFields;
 
 namespace Application.Interfaces
 {
