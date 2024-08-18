@@ -3,7 +3,10 @@ using Application.Interfaces;
 using Application.Mappers;
 using Application.Services;
 using Domain.Entities.AccountEntities;
+using Domain.Entities.EmployeeEntities;
+using Domain.Entities.StudentEntities;
 using Domain.Interfaces;
+using Domain.Interfaces.Base;
 using Domain.Interfaces.InterfacesBase;
 using Domain.Interfaces.Repositories;
 using Infrastructure.Data;
@@ -16,6 +19,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using OfficeOpenXml;
 using Serilog;
 using System.Text;
@@ -34,7 +38,7 @@ namespace RestApi
 
             var app = builder.Build();
 
-            await SeedDatabaseAsync(app);
+            //await SeedDatabaseAsync(app);
 
             ConfigureMiddleware(app);
 
@@ -60,7 +64,39 @@ namespace RestApi
 
             // Add Swagger
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGen(options =>
+            {
+                options.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "My Api",
+                    Version = "v1"
+                });
+
+                // Define the security scheme for JWT Bearer
+                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "Enter your JWT token in the text input below.\r\n\r\nYou do not need to include 'Bearer ' before the token as it will be added automatically."
+                });
+
+                // Require JWT Bearer token for accessing secure endpoints
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+{                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    Array.Empty<string>()}
+                });
+            });
 
             // Add configuration
             var configuration = builder.Configuration;
@@ -82,14 +118,17 @@ namespace RestApi
             builder.Services.AddScoped(typeof(IPersonRepository<>), typeof(PersonRepository<>));
             builder.Services.AddScoped<IAccountRepository, AccountRepository>();
             builder.Services.AddScoped<IRoleRepository, RoleRepository>();
-            builder.Services.AddScoped<HttpJwtService>();
-
-            // Register Services
-            builder.Services.AddScoped<IAccountService, AccountService>();
-            builder.Services.AddScoped<ILoginService, LoginService>();
             builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
             builder.Services.AddScoped<IJwtService, JwtService>();
+            builder.Services.AddScoped<HttpJwtService>();
+            builder.Services.AddScoped<ICRUDRepository<Employee>, CRUDRepository<Employee>>();
+            builder.Services.AddScoped<ICRUDRepository<Student>, CRUDRepository<Student>>();
 
+            // Register Application Services
+            builder.Services.AddScoped<IAccountService, AccountService>();
+            builder.Services.AddScoped<ILoginService, LoginService>();
+            builder.Services.AddScoped<IPersonService<Student>, PersonService<Student>>();
+            builder.Services.AddScoped<IPersonService<Employee>, PersonService<Employee>>();
 
             // Register password hasher
             builder.Services.AddSingleton<IPasswordHasher<UserAccount>, PasswordHasher<UserAccount>>();
@@ -135,11 +174,20 @@ namespace RestApi
                 };
             });
 
-            // Register JWT Service
-            builder.Services.AddScoped<JwtService>();
-
             // Pass EPPlus configuration to Infrastucture layer
             ExcelPackage.LicenseContext = configuration.GetSection("EPPlus:ExcelPackage").Get<LicenseContext>();
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend",
+                    builder =>
+                    {
+                        builder.WithOrigins("http://localhost:5173")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
+                    });
+            });
         }
 
         private static async Task SeedDatabaseAsync(WebApplication app)
@@ -192,8 +240,18 @@ namespace RestApi
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+            else
+            {
+                app.UseSwagger();
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Your api v1");
+                    c.RoutePrefix = string.Empty;
+                });
+            }
 
             app.UseHttpsRedirection();
+            app.UseCors("AllowFrontend");
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();

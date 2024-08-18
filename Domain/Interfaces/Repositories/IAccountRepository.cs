@@ -13,6 +13,7 @@ namespace Domain.Interfaces.Repositories
         Task DeleteAsync(Guid id);
         Task<UserAccount> GetByUsername(string username);
         Task<UserAccount?> GetByRefreshTokenAsync(string refreshToken);
+        Task<UserAccount?> GetBySessionIdAsync(Guid sessionId);
 
         IEnumerable<string> GetAllUsernames();
     }

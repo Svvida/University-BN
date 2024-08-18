@@ -268,13 +268,13 @@ namespace Infrastructure.Data
 
             foreach (var entry in entries)
             {
-                if(entry.State == EntityState.Added)
+                if (entry.State == EntityState.Added)
                 {
                     entry.Entity.CreatedAt = DateTime.UtcNow;
                 }
 
                 entry.Entity.UpdatedAt = DateTime.UtcNow;
             }
-        } 
+        }
     }
 }

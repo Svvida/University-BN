@@ -25,6 +25,13 @@ namespace Domain.Entities.AccountEntities
         [EmailAddress]
         public string Email { get; set; }
 
+        // Session ID
+        public Guid? SessionId { get; set; }
+
+        // Refresh token properties
+        public string? RefreshToken { get; set; }
+        public DateTime? RefreshTokenExpiryTime { get; set; }
+
         // Navigation properties
         public ICollection<UserAccountRole> UserAccountRoles { get; set; } = new List<UserAccountRole>();
         public Student? Student { get; set; }
@@ -32,11 +39,6 @@ namespace Domain.Entities.AccountEntities
         public EventOrganizer? EventOrganizer { get; set; }
         public Company? Company { get; set; }
         public ExternalParticipant? ExternalParticipant { get; set; }
-
-        // Refresh token properties
-        public string? RefreshToken { get; set; }
-        public DateTime? RefreshTokenExpiryTime { get; set; }
-
         public UserAccount() { }
 
         public UserAccount(Guid id, string login, string password, string email)

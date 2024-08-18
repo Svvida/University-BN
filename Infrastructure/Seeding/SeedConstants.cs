@@ -1,4 +1,5 @@
 ﻿using Domain.Entities.AccountEntities;
+using Domain.Enums;
 using Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,14 +21,16 @@ namespace Infrastructure.Seeding
         {
             if (!context.Roles.Any())
             {
-                var roles = new List<Role>
+                foreach (var role in Enum.GetValues(typeof(RoleType)).Cast<RoleType>())
                 {
-                    new Role { Id = SeedingConstants.AdminRoleId, Name = SeedingConstants.AdminRoleName, NormalizedName = SeedingConstants.AdminRoleName.ToUpper() },
-                    new Role { Id = SeedingConstants.TeacherRoleId, Name = SeedingConstants.TeacherRoleName, NormalizedName = SeedingConstants.TeacherRoleName.ToUpper() },
-                    new Role { Id = SeedingConstants.StudentRoleId, Name = SeedingConstants.StudentRoleName, NormalizedName = SeedingConstants.StudentRoleName.ToUpper() }
-                };
+                    var roleName = role.ToString();
+                    context.Roles.Add(new Role
+                    {
+                        Name = roleName,
+                        NormalizedName = roleName.ToUpper()
+                    });
+                }
 
-                context.Roles.AddRange(roles);
                 context.SaveChanges();
             }
         }
@@ -44,7 +47,7 @@ namespace Infrastructure.Seeding
                     Password = passwordHasher.HashPassword(null, SeedingConstants.AdminPassword)
                 };
 
-                var adminRole = context.Roles.FirstOrDefault(r => r.NormalizedName == SeedingConstants.AdminRoleName.ToUpper());
+                var adminRole = context.Roles.FirstOrDefault(r => r.NormalizedName == RoleType.Admin.ToString().ToUpper());
                 if (adminRole != null)
                 {
                     adminAccount.UserAccountRoles.Add(new UserAccountRole { RoleId = adminRole.Id });

@@ -1,6 +1,7 @@
 ﻿using Domain.Entities.AccountEntities;
 using Domain.Interfaces;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -12,10 +13,12 @@ namespace Infrastructure.Services
     public class JwtService : IJwtService
     {
         private readonly IConfiguration _configuration;
+        private readonly ILogger<JwtService> _logger;
 
-        public JwtService(IConfiguration configuration)
+        public JwtService(IConfiguration configuration, ILogger<JwtService> logger)
         {
             _configuration = configuration;
+            _logger = logger;
         }
 
         public string GenerateToken(UserAccount userAccount)
@@ -46,6 +49,7 @@ namespace Infrastructure.Services
                 expires: DateTime.Now.AddMinutes(15),
                 signingCredentials: creds);
 
+            _logger.LogInformation($"JWT access token: {token}");
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
@@ -53,7 +57,5 @@ namespace Infrastructure.Services
         {
             return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
         }
-
-
     }
 }

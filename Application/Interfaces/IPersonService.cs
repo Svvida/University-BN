@@ -1,14 +1,11 @@
-﻿using Domain.Enums.SearchableFields;
+﻿using Application.DTOs.BaseDtos;
+using Application.Interfaces.IGenericServices;
+using Domain.Enums.SearchableFields;
 
 namespace Application.Interfaces
 {
-    public interface IPersonService<T>
+    public interface IPersonService<T> : ICRUDService<PersonOnlyDto, PersonExtendedDto, PersonCreateDto, PersonExtendedDto>
     {
-        Task<T> GetByIdAsync(Guid id);
-        Task<IEnumerable<T>> GetAllAsync();
-        Task<IEnumerable<T>> GetByFieldAsync(AccountSearchableFields field, string value);
-        Task CreateAsync(T person);
-        Task UpdateAsync(T person);
-        Task DeleteAsync(Guid id);
+        Task<IEnumerable<T>> GetByFieldAsync(PersonSearchableFields field, string value);
     }
 }

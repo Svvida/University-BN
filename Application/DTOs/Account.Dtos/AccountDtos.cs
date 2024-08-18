@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Application.DTOs.Account.Dtos
 {
-    public abstract class AccountOnlyDto
+    public class AccountOnlyDto
     {
         [Required]
         public Guid Id { get; set; }

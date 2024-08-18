@@ -123,5 +123,10 @@ namespace Infrastructure.Repositories
         {
             return await _context.UsersAccounts.FirstOrDefaultAsync(ua => ua.RefreshToken == refreshToken);
         }
+
+        public async Task<UserAccount?> GetBySessionIdAsync(Guid sessionId)
+        {
+            return await _context.UsersAccounts.FirstOrDefaultAsync(ua => ua.SessionId == sessionId);
+        }
     }
 }

@@ -1,7 +1,7 @@
-﻿using Domain.Interfaces.Repositories;
+﻿using Domain.Entities.ExternalEntities;
+using Domain.Interfaces.Repositories;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using Domain.Entities.ExternalEntities;
 
 namespace Infrastructure.Repositories
 {
@@ -23,7 +23,7 @@ namespace Infrastructure.Repositories
 
             var account = await _context.Companies.FirstOrDefaultAsync(c => c.AccountId == accountId);
 
-            if(account is null)
+            if (account is null)
             {
                 throw new KeyNotFoundException($"No Account found with ID: {accountId}");
             }

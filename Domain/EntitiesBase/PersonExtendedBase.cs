@@ -12,6 +12,7 @@ namespace Domain.EntitiesBase
         public Gender Gender { get; set; } = 0;
         [Required]
         [StringLength(11, MinimumLength = 11, ErrorMessage = "PESEL must be 11 digits long.")]
+        [RegularExpression(@"\d{11}", ErrorMessage = "PESEL must consist of 11 digits.")]
         public string PESEL { get; set; }
 
         [Required]

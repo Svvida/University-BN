@@ -1,4 +1,5 @@
 ﻿using Bogus;
+using Bogus.Extensions.Poland;
 using Domain.Entities.EducationEntities;
 using Domain.Entities.StudentEntities;
 using Domain.Enums;
@@ -27,13 +28,14 @@ namespace Infrastructure.Seeding.Bogus.StudentSeeding
                     .RuleFor(s => s.Surname, f => f.Name.LastName())
                     .RuleFor(s => s.DateOfBirth, f => f.Date.Past(20, DateTime.Now.AddYears(-18)))
                     .RuleFor(s => s.Gender, f => f.PickRandom<Gender>())
+                    .RuleFor(s => s.PESEL, f => f.Person.Pesel())
                     .RuleFor(s => s.ContactEmail, f => f.Internet.Email())
                     .RuleFor(s => s.ContactPhone, f => f.Phone.PhoneNumberFormat())
                     .RuleFor(s => s.DateOfAddmission, f => f.Date.Past(3))
                     .Generate();
 
                 // Generate and associate account with student
-                student.Account = _accountSeeder.GenerateAccountForPerson(student.Name, student.Surname);
+                student.Account = _accountSeeder.GenerateAccountForPerson(student.Name, student.Surname, RoleType.Student.ToString());
 
                 // Add additional related entities
                 student.Address = GenerateAddress();

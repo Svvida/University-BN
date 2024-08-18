@@ -1,30 +1,52 @@
 ﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Services
 {
     public class HttpJwtService
     {
-        public void SetRefreshTokenCookie(HttpResponse response, string refreshToken, DateTime expiry)
+        private readonly ILogger<HttpJwtService> _logger;
+
+        public HttpJwtService(ILogger<HttpJwtService> logger)
         {
+            _logger = logger;
+        }
+
+        public void SetSessionIdCookie(HttpResponse response, string sessionId, DateTime expiry)
+        {
+            _logger.LogInformation("Setting session ID cookie with expiry: {Expiry}", expiry);
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Strict,
+                SameSite = SameSiteMode.None,
                 Expires = expiry
             };
 
-            response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
+            response.Cookies.Append("sessionId", sessionId, cookieOptions);
+            _logger.LogInformation("Session ID cookie set successfully.");
         }
 
-        public string GetRefreshTokenFromCookies(HttpRequest request)
+        public string GetSessionIdFromCookies(HttpRequest request)
         {
-            return request.Cookies["refreshToken"];
+            _logger.LogInformation("Retrieving session ID from cookies.");
+            var sessionId = request.Cookies["sessionId"];
+            if (string.IsNullOrEmpty(sessionId))
+            {
+                _logger.LogWarning("Session ID not found in cookies.");
+            }
+            else
+            {
+                _logger.LogInformation("Session ID retrieved from cookies: {SessionId}", sessionId);
+            }
+            return sessionId;
         }
 
-        public void RemoveRefreshTokenCookie(HttpResponse response)
+        public void RemoveSessionIdCookie(HttpResponse response)
         {
-            response.Cookies.Delete("refreshToken");
+            _logger.LogInformation("Removing session ID cookie.");
+            response.Cookies.Delete("sessionId");
+            _logger.LogInformation("Session ID cookie removed successfully.");
         }
     }
 }
