@@ -1,4 +1,3 @@
-
 using Application.Interfaces;
 using Application.Mappers;
 using Application.Services;
@@ -15,6 +14,7 @@ using Infrastructure.Repositories.RepositoriesBase;
 using Infrastructure.Seeding;
 using Infrastructure.Seeding.Bogus;
 using Infrastructure.Services;
+using Infrastructure.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -111,6 +111,9 @@ namespace RestApi
                 .EnableSensitiveDataLogging(false)
                 .LogTo(Console.WriteLine, LogLevel.Warning));
 
+            // Add configuration for SmtpSettings
+            builder.Services.Configure<SmtpSettings>(configuration.GetSection("SmtpSettings"));
+
             // Register Infrastructure Services
             builder.Services.AddScoped(typeof(IAddressRepository<>), typeof(AddressRepository<>));
             builder.Services.AddScoped(typeof(IConsentRepository<>), typeof(ConsentRepository<>));
@@ -123,6 +126,9 @@ namespace RestApi
             builder.Services.AddScoped<HttpJwtService>();
             builder.Services.AddScoped<ICRUDRepository<Employee>, CRUDRepository<Employee>>();
             builder.Services.AddScoped<ICRUDRepository<Student>, CRUDRepository<Student>>();
+            builder.Services.AddTransient<IEmailService, MailKitEmailService>();
+            builder.Services.AddTransient<IPasswordResetService, PasswordResetService>();
+            builder.Services.AddSingleton<IPasswordResetTokenStore, InMemoryPasswordResetTokenStore>();
 
             // Register Application Services
             builder.Services.AddScoped<IAccountService, AccountService>();

@@ -19,7 +19,7 @@ namespace Infrastructure.Services
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.None,
+                SameSite = SameSiteMode.Strict,
                 Expires = expiry
             };
 

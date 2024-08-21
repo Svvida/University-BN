@@ -35,17 +35,24 @@ namespace Application.Services
             var user = await _authenticationService.GetUserAsync(loginDto.Identifier);
             var token = _jwtService.GenerateToken(user);
 
-            // Generate a new session ID
-            var sessionId = Guid.NewGuid().ToString();
+            string sessionId = null;
 
-            // Store session ID and refresh token in the database
-            user.SessionId = new Guid(sessionId);
-            user.RefreshToken = _jwtService.GenerateRefreshToken();
-            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            if (loginDto.RememberMe)
+            {
+                // Generate session ID and save session & refresh token to the database
+                sessionId = Guid.NewGuid().ToString();
+                user.SessionId = new Guid(sessionId);
+                user.RefreshToken = _jwtService.GenerateRefreshToken();
+                user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
 
-            await _accountRepository.UpdateAsync(user);
+                await _accountRepository.UpdateAsync(user);
 
-            _logger.LogInformation("User logged in successfully. Session ID: {SessionId}, Refresh token stored in database.", sessionId);
+                _logger.LogInformation("User logged in with 'Remember Me'. Session ID and refresh token saved in database.");
+            }
+            else
+            {
+                _logger.LogInformation("User logged in without 'Remember Me'. No session ID or refresh token stored.");
+            }
 
             return (token, sessionId);
         }

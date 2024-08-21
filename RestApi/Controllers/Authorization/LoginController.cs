@@ -42,14 +42,23 @@ namespace RestApi.Controllers.Authorization
 
             _logger.LogInformation("Attempting to login user with identifier: {Identifier}", loginDto.Identifier);
             var (token, sessionId) = await _loginService.LoginAsync(loginDto);
+
             if (token is null)
             {
                 _logger.LogWarning("Login failed for user: {Identifier}", loginDto.Identifier);
                 return Unauthorized("Invalid username or password");
             }
 
-            _httpJwtService.SetSessionIdCookie(Response, sessionId, DateTime.Now.AddDays(7));
-            _logger.LogInformation("Login successful for user: {Identifier}. Tokens issued.", loginDto.Identifier);
+            // Only set the sessionId cookie and save session to database if "Remember Me" is true
+            if (loginDto.RememberMe)
+            {
+                _httpJwtService.SetSessionIdCookie(Response, sessionId, DateTime.Now.AddDays(7));
+                _logger.LogInformation("Login successful with 'Remember Me' for user: {Identifier}. Tokens issued.", loginDto.Identifier);
+            }
+            else
+            {
+                _logger.LogInformation("Login successful without 'Remember Me' for user: {Identifier}. Only access token issued.", loginDto.Identifier);
+            }
 
             return Ok(new { accessToken = token });
         }

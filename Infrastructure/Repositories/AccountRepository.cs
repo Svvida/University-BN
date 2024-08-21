@@ -33,17 +33,17 @@ namespace Infrastructure.Repositories
             return await _context.UsersAccounts.ToListAsync();
         }
 
-        public async Task<IEnumerable<UserAccount>> GetByFieldAsync(AccountSearchableFields field, string value)
+        public async Task<UserAccount> GetByFieldAsync(AccountSearchableFields field, string value)
         {
             string dbFieldName = GetDbFieldName(field);
-            var accounts = await _context.UsersAccounts.Where(e => EF.Property<string>(e, dbFieldName) == value).ToListAsync();
+            var account = await _context.UsersAccounts.Where(e => EF.Property<string>(e, dbFieldName) == value).FirstOrDefaultAsync();
 
-            if (!accounts.Any())
+            if (account is null)
             {
                 throw new KeyNotFoundException($"No Account fount with {field} = {value}");
             }
 
-            return accounts;
+            return account;
         }
 
         private string GetDbFieldName(AccountSearchableFields field)
