@@ -60,5 +60,17 @@ namespace Infrastructure.Services
 
             return resetToken;
         }
+
+        public async Task<bool> CheckLastPasswordAsync(string email, string newPassword)
+        {
+            var user = await _accountRepository.GetByFieldAsync(AccountSearchableFields.Email, email);
+
+            if(user is null)
+            {
+                throw new KeyNotFoundException($"No user found with email {email}");
+            }
+
+            return _passwordHasher.VerifyHashedPassword(user, user.Password, newPassword) == PasswordVerificationResult.Success;
+        }
     }
 }

@@ -47,14 +47,20 @@ namespace RestApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            if (_passwordResetTokenStore.ValidateToken(token, email))
+            if (!_passwordResetTokenStore.ValidateToken(token, email))
             {
-                await _passwordResetService.ResetUserPassword(email, dto.Password);
-                _passwordResetTokenStore.InvalidateToken(token);
-                return Ok(new { message = "Password has been reset successfully" });
+                return BadRequest(new { message = "Invalid or expired token." });
             }
 
-            return BadRequest(new { message = "Invalid or expired token" });
+            if (await _passwordResetService.CheckLastPasswordAsync(email, dto.Password))
+            {
+                return BadRequest(new { message = "New password cannot be the same as the current password." });
+            }
+
+            await _passwordResetService.ResetUserPassword(email, dto.Password);
+            _passwordResetTokenStore.InvalidateToken(token);
+
+            return Ok(new { message = "Password has been reset successfully" });
         }
     }
 }
