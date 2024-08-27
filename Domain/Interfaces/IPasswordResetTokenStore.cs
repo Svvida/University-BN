@@ -2,8 +2,8 @@
 {
     public interface IPasswordResetTokenStore
     {
-        string GenerateToken(string email);
-        bool ValidateToken(string token, string email);
+        string GenerateToken(string email, string resetIdentifier);
+        bool ValidateToken(string token, string email, string resetIdentifier);
         void InvalidateToken(string token);
     }
 }

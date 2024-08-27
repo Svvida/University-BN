@@ -27,8 +27,20 @@ namespace RestApi.Controllers
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
         {
+            // Generate reset identifier
+            var resetIdentifier = HttpContext.Session.Id;
+
             // Generate reset token
-            var resetToken = _passwordResetTokenStore.GenerateToken(dto.Email);
+            var resetToken = _passwordResetTokenStore.GenerateToken(dto.Email, resetIdentifier);
+
+            // Store reset identifier in a secure cookie
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                Expires = DateTime.UtcNow.AddMinutes(30)
+            };
+            Response.Cookies.Append("PasswordResetIdentifier", resetIdentifier, cookieOptions);
 
             // Construct reset link
             var resetLink = Url.Action("ResetPassword", "PasswordReset", new { token = resetToken, email = dto.Email }, Request.Scheme);
@@ -47,9 +59,12 @@ namespace RestApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            if (!_passwordResetTokenStore.ValidateToken(token, email))
+            // Retrieve reset identifier from secure cookie
+            var resetIdentifier = Request.Cookies["PasswordResetIdentifier"];
+
+            if (!_passwordResetTokenStore.ValidateToken(token, email, resetIdentifier))
             {
-                return BadRequest(new { message = "Invalid or expired token." });
+                return BadRequest(new { message = "Invalid or expired token, or the request was made from a different browser or device." });
             }
 
             if (await _passwordResetService.CheckLastPasswordAsync(email, dto.Password))

@@ -6,8 +6,8 @@ namespace Infrastructure.Services
 {
     public class InMemoryPasswordResetTokenStore : IPasswordResetTokenStore
     {
-        private readonly ConcurrentDictionary<string, (string email, DateTime expiry)> _tokens
-            = new ConcurrentDictionary<string, (string email, DateTime expiry)>();
+        private readonly ConcurrentDictionary<string, (string email, DateTime expiry, string resetIdentifier)> _tokens
+            = new ConcurrentDictionary<string, (string email, DateTime expiry, string resetIdentifier)>();
         private readonly ILogger<InMemoryPasswordResetTokenStore> _logger;
 
         public InMemoryPasswordResetTokenStore(ILogger<InMemoryPasswordResetTokenStore> logger)
@@ -15,21 +15,23 @@ namespace Infrastructure.Services
             _logger = logger;
         }
 
-        public string GenerateToken(string email)
+        public string GenerateToken(string email, string resetIdentifier)
         {
-            var token = Guid.NewGuid().ToString();
-            var expiry = DateTime.UtcNow.AddHours(1);
-            _logger.LogInformation($"Generated reset password token: {token} that expires: {expiry} for account: {email}");
-            _tokens[token] = (email, expiry);
+            string token = Guid.NewGuid().ToString();
+            var expiry = DateTime.UtcNow.AddMinutes(30);
+
+            _tokens[token] = (email, expiry, resetIdentifier);
+
+            _logger.LogInformation($"Generated reset token: {token} for email: {email} with expiry: {expiry} and associated with identifier: {resetIdentifier}");
 
             return token;
         }
 
-        public bool ValidateToken(string token, string email)
+        public bool ValidateToken(string token, string email, string resetIdentifier)
         {
             if (_tokens.TryGetValue(token, out var tokenData))
             {
-                if (tokenData.email == email && tokenData.expiry > DateTime.UtcNow)
+                if (tokenData.email == email && tokenData.expiry > DateTime.UtcNow && tokenData.resetIdentifier == resetIdentifier)
                 {
                     return true;
                 }
