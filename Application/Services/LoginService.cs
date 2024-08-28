@@ -1,5 +1,6 @@
 ﻿using Application.DTOs;
 using Application.Interfaces;
+using Domain.Enums.SearchableFields;
 using Domain.Interfaces;
 using Domain.Interfaces.Repositories;
 using Microsoft.Extensions.Logging;
@@ -32,7 +33,7 @@ namespace Application.Services
                 return (null, null);
             }
 
-            var user = await _authenticationService.GetUserAsync(loginDto.Identifier);
+            var user = await _accountRepository.GetByFieldAsync(AccountSearchableFields.Login, loginDto.Identifier);
             var token = _jwtService.GenerateToken(user);
 
             string sessionId = null;
@@ -41,9 +42,7 @@ namespace Application.Services
             {
                 // Generate session ID and save session & refresh token to the database
                 sessionId = Guid.NewGuid().ToString();
-                user.SessionId = new Guid(sessionId);
-                user.RefreshToken = _jwtService.GenerateRefreshToken();
-                user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+                _authenticationService.StoreRefreshToken(user.Id.ToString(), sessionId, _jwtService.GenerateRefreshToken());
 
                 await _accountRepository.UpdateAsync(user);
 
@@ -57,24 +56,25 @@ namespace Application.Services
             return (token, sessionId);
         }
 
-        public async Task<(string token, string sessionId)> RefreshTokenAsync(string sessionId)
+        public async Task<(string token, string sessionId)> RefreshTokenAsync(string userId, string sessionId, string refreshToken)
         {
             _logger.LogInformation("Attempting to refresh token with session ID: {SessionId}", sessionId);
 
-            var user = await _authenticationService.ValidateSessionAsync(new Guid(sessionId));
-
-            if (user is null)
+            var isValidSession = _authenticationService.ValidateSession(userId, sessionId);
+            if (!isValidSession)
             {
                 _logger.LogWarning("Session validation failed. Session not found or invalid.");
                 return (null, null);
             }
 
-            if (user.RefreshTokenExpiryTime < DateTime.UtcNow)
+            var isValidToken = _authenticationService.ValidateRefreshToken(userId, sessionId, refreshToken);
+            if (!isValidToken)
             {
-                _logger.LogWarning("Refresh token expired for user: {Identifier}. Expiry: {Expiry}", user.Login, user.RefreshTokenExpiryTime);
+                _logger.LogWarning("Refresh token expired");
                 return (null, null);
             }
 
+            var user = await _accountRepository.GetByIdAsync(new Guid(userId));
             var newToken = _jwtService.GenerateToken(user);
 
             _logger.LogInformation("Generated new access token for user: {Identifier}. Session ID remains the same: {SessionId}", user.Login, sessionId);

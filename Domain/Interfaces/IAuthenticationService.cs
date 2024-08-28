@@ -1,12 +1,10 @@
-﻿using Domain.Entities.AccountEntities;
-
-namespace Domain.Interfaces
+﻿namespace Domain.Interfaces
 {
     public interface IAuthenticationService
     {
         Task<bool> ValidateUserAsync(string username, string password);
-        Task<UserAccount> GetUserAsync(string username);
-        Task<UserAccount?> ValidateRefreshTokenAsync(string refreshToken);
-        Task<UserAccount?> ValidateSessionAsync(Guid sessionId);
+        bool ValidateRefreshToken(string userId, string sessionId, string refreshToken);
+        bool ValidateSession(string userId, string sessionId);
+        void StoreRefreshToken(string userId, string sessionId, string refreshToken);
     }
 }

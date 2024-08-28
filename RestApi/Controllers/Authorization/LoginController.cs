@@ -67,6 +67,7 @@ namespace RestApi.Controllers.Authorization
         public async Task<IActionResult> Refresh()
         {
             _logger.LogInformation("Attempting to refresh token.");
+
             var sessionId = _httpJwtService.GetSessionIdFromCookies(Request);
             if (string.IsNullOrEmpty(sessionId))
             {

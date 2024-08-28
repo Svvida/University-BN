@@ -1,4 +1,5 @@
 ﻿using Domain.Entities.AccountEntities;
+using Domain.Enums.SearchableFields;
 using Domain.Interfaces;
 using Domain.Interfaces.Repositories;
 using Microsoft.AspNetCore.Identity;
@@ -11,20 +12,23 @@ namespace Infrastructure.Services
         private readonly IAccountRepository _accountRepository;
         private readonly IPasswordHasher<UserAccount> _passwordHasher;
         private readonly ILogger<AuthenticationService> _logger;
+        private readonly IRefreshTokenStore _refreshTokenStore;
 
         public AuthenticationService(
             IAccountRepository accountRepository,
             IPasswordHasher<UserAccount> passwordHasher,
-            ILogger<AuthenticationService> logger)
+            ILogger<AuthenticationService> logger,
+            IRefreshTokenStore refreshTokenStore)
         {
             _accountRepository = accountRepository;
             _passwordHasher = passwordHasher;
             _logger = logger;
+            _refreshTokenStore = refreshTokenStore;
         }
 
         public async Task<bool> ValidateUserAsync(string username, string password)
         {
-            var account = await _accountRepository.GetByUsername(username);
+            var account = await _accountRepository.GetByFieldAsync(AccountSearchableFields.Login, username);
             if (account is null)
             {
                 return false;
@@ -35,33 +39,36 @@ namespace Infrastructure.Services
             return result == PasswordVerificationResult.Success;
         }
 
-        public async Task<UserAccount> GetUserAsync(string username)
+        public bool ValidateRefreshToken(string userId, string sessionId, string refreshToken)
         {
-            return await _accountRepository.GetByUsername(username);
-        }
-
-        public async Task<UserAccount?> ValidateRefreshTokenAsync(string refreshToken)
-        {
-            var account = await _accountRepository.GetByRefreshTokenAsync(refreshToken);
-            if (account is null || account.RefreshTokenExpiryTime < DateTime.UtcNow)
+            var isValid = _refreshTokenStore.ValidateToken(userId, sessionId, refreshToken);
+            if (!isValid)
             {
                 _logger.LogInformation("Invalid or expired refresh token");
-                return null;
             }
 
-            return account;
+            return isValid;
         }
 
-        public async Task<UserAccount?> ValidateSessionAsync(Guid sessionId)
+        public bool ValidateSession(string userId, string sessionId)
         {
-            var account = await _accountRepository.GetBySessionIdAsync(sessionId);
-            if (account is null)
+            var isValid = _refreshTokenStore.ValidateToken(userId, sessionId, null);
+            if (isValid)
             {
-                _logger.LogInformation("Invalid session ID");
-                return null;
+                _logger.LogInformation($"Valid session ID: {sessionId} for user: {userId}");
+            }
+            else
+            {
+                _logger.LogInformation("Invalid session ID or session does not belong to the user.");
             }
 
-            return account;
+            return isValid;
+        }
+
+        public void StoreRefreshToken(string userId, string sessionId, string refreshToken)
+        {
+            var expiryTime = DateTime.UtcNow.AddDays(7);
+            _refreshTokenStore.StoreToken(userId, sessionId, refreshToken, expiryTime);
         }
     }
 }
