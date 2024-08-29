@@ -14,21 +14,15 @@ namespace RestApi.Controllers.Authorization
         private readonly ILoginService _loginService;
         private readonly HttpJwtService _httpJwtService;
         private readonly ILogger<LoginController> _logger;
-        private readonly IAuthenticationService _authenticationService;
-        private readonly IAccountRepository _accountRepository;
 
         public LoginController(
             ILoginService loginService,
             HttpJwtService httpJwtService,
-            ILogger<LoginController> logger,
-            IAuthenticationService authenticationService,
-            IAccountRepository accountRepository)
+            ILogger<LoginController> logger)
         {
             _loginService = loginService;
             _httpJwtService = httpJwtService;
             _logger = logger;
-            _authenticationService = authenticationService;
-            _accountRepository = accountRepository;
         }
 
         [HttpPost("auth")]
@@ -50,7 +44,7 @@ namespace RestApi.Controllers.Authorization
             }
 
             // Only set the sessionId cookie and save session to database if "Remember Me" is true
-            if (loginDto.RememberMe)
+            if (loginDto.RememberMe && sessionId is not null)
             {
                 _httpJwtService.SetSessionIdCookie(Response, sessionId, DateTime.Now.AddDays(7));
                 _logger.LogInformation("Login successful with 'Remember Me' for user: {Identifier}. Tokens issued.", loginDto.Identifier);
@@ -75,13 +69,19 @@ namespace RestApi.Controllers.Authorization
                 return Unauthorized("No session ID provided.");
             }
 
-            _logger.LogInformation("Session ID retrieved: {SessionId}", sessionId);
-            var (newToken, _) = await _loginService.RefreshTokenAsync(sessionId);
-
-            if (newToken is null)
+            var userId = User.FindFirst("userId")?.Value;  // Retrieve userId from JWT claims
+            if (string.IsNullOrEmpty(userId))
             {
-                _logger.LogWarning("Invalid session ID provided: {SessionId}", sessionId);
-                return Unauthorized("Invalid session ID");
+                _logger.LogWarning("User ID could not be retrieved from the JWT.");
+                return Unauthorized("Invalid user information.");
+            }
+
+            var (newToken, newSessionId) = await _loginService.RefreshTokenAsync(userId, sessionId, null); // Adjusted for the centralized logic
+
+            if (newToken == null)
+            {
+                _logger.LogWarning("Token refresh failed for session ID: {SessionId}", sessionId);
+                return Unauthorized("Invalid session ID or token.");
             }
 
             _logger.LogInformation("Token refreshed successfully. New access token issued.");
@@ -89,22 +89,17 @@ namespace RestApi.Controllers.Authorization
             return Ok(new { accessToken = newToken });
         }
 
+
         [HttpPost("postAuth/logout")]
-        public async Task<IActionResult> Logout()
+        public IActionResult Logout()
         {
             _logger.LogInformation("User logged out, removing session ID cookie.");
             var sessionId = _httpJwtService.GetSessionIdFromCookies(Request);
-            if (string.IsNullOrEmpty(sessionId))
+            if (!string.IsNullOrEmpty(sessionId))
             {
-                var user = await _authenticationService.ValidateSessionAsync(new Guid(sessionId));
-                if (user is not null)
-                {
-                    // Invalidate session and refresh token
-                    user.SessionId = null;
-                    user.RefreshToken = null;
-                    await _accountRepository.UpdateAsync(user);
-                }
+                _loginService.Logout(sessionId);
             }
+
             _httpJwtService.RemoveSessionIdCookie(Response);
             return Ok("Logged out");
         }

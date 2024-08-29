@@ -10,14 +10,18 @@ namespace Application.Services
     public class LoginService : ILoginService
     {
         private readonly IAuthenticationService _authenticationService;
-        private readonly IJwtService _jwtService;
+        private readonly ITokenManager _tokenManager;
         private readonly IAccountRepository _accountRepository;
         private readonly ILogger<LoginService> _logger;
 
-        public LoginService(IAuthenticationService authenticationService, IJwtService jwtService, IAccountRepository accountRepository, ILogger<LoginService> logger)
+        public LoginService(
+            IAuthenticationService authenticationService,
+            ITokenManager tokenManager,
+            IAccountRepository accountRepository,
+            ILogger<LoginService> logger)
         {
             _authenticationService = authenticationService;
-            _jwtService = jwtService;
+            _tokenManager = tokenManager;
             _accountRepository = accountRepository;
             _logger = logger;
         }
@@ -34,19 +38,20 @@ namespace Application.Services
             }
 
             var user = await _accountRepository.GetByFieldAsync(AccountSearchableFields.Login, loginDto.Identifier);
-            var token = _jwtService.GenerateToken(user);
+            var token = _tokenManager.GenerateAccessToken(user);
 
             string sessionId = null;
 
             if (loginDto.RememberMe)
             {
-                // Generate session ID and save session & refresh token to the database
-                sessionId = Guid.NewGuid().ToString();
-                _authenticationService.StoreRefreshToken(user.Id.ToString(), sessionId, _jwtService.GenerateRefreshToken());
+                // Generate session ID and save session & refresh token using TokenManager
+                sessionId = _tokenManager.GenerateSessionId();
+                var refreshToken = _tokenManager.GenerateRefreshToken();
+                _tokenManager.StoreSession(user.Id.ToString(), sessionId, refreshToken);
 
                 await _accountRepository.UpdateAsync(user);
 
-                _logger.LogInformation("User logged in with 'Remember Me'. Session ID and refresh token saved in database.");
+                _logger.LogInformation("User logged in with 'Remember Me'. Session ID and refresh token saved in memory.");
             }
             else
             {
@@ -60,26 +65,24 @@ namespace Application.Services
         {
             _logger.LogInformation("Attempting to refresh token with session ID: {SessionId}", sessionId);
 
-            var isValidSession = _authenticationService.ValidateSession(userId, sessionId);
-            if (!isValidSession)
+            // Refresh the access token using TokenManager
+            var newToken = await _tokenManager.RefreshAccessTokenAsync(userId, sessionId);
+
+            if (newToken == null)
             {
-                _logger.LogWarning("Session validation failed. Session not found or invalid.");
+                _logger.LogWarning("Failed to refresh token. Session or refresh token might be invalid or expired.");
                 return (null, null);
             }
 
-            var isValidToken = _authenticationService.ValidateRefreshToken(userId, sessionId, refreshToken);
-            if (!isValidToken)
-            {
-                _logger.LogWarning("Refresh token expired");
-                return (null, null);
-            }
-
-            var user = await _accountRepository.GetByIdAsync(new Guid(userId));
-            var newToken = _jwtService.GenerateToken(user);
-
-            _logger.LogInformation("Generated new access token for user: {Identifier}. Session ID remains the same: {SessionId}", user.Login, sessionId);
+            _logger.LogInformation("Generated new access token for userId: {UserId}. Session ID remains the same: {SessionId}", userId, sessionId);
 
             return (newToken, sessionId);
+        }
+        public void Logout(string sessionId)
+        {
+            _logger.LogInformation("Logging out session with sessionId: {SessionId}", sessionId);
+            _tokenManager.InvalidateSession(sessionId);
+            _logger.LogInformation("Session invalidated successfully.");
         }
     }
 }

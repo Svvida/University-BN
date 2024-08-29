@@ -27,7 +27,8 @@ namespace Infrastructure.Services
             {
                 new Claim(JwtRegisteredClaimNames.Sub, userAccount.Login),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, userAccount.Email)
+                new Claim(JwtRegisteredClaimNames.Email, userAccount.Email),
+                new Claim("userId", userAccount.Id.ToString())
             };
 
             // Add roles to the claims
@@ -51,11 +52,6 @@ namespace Infrastructure.Services
 
             _logger.LogInformation($"JWT access token: {token}");
             return new JwtSecurityTokenHandler().WriteToken(token);
-        }
-
-        public string GenerateRefreshToken()
-        {
-            return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
         }
     }
 }
