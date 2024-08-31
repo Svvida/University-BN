@@ -100,33 +100,9 @@ namespace Infrastructure.Repositories
             }
         }
 
-        public async Task<UserAccount> GetByUsername(string username)
-        {
-
-            var account = await _context.UsersAccounts.FirstOrDefaultAsync(e => e.Login == username);
-            if (account is not null)
-            {
-                return account;
-            }
-            else
-            {
-                return null;
-            }
-        }
-
         public IEnumerable<string> GetAllUsernames()
         {
             return _context.UsersAccounts.Select(ua => ua.Login).ToList();
-        }
-
-        public async Task<UserAccount?> GetByRefreshTokenAsync(string refreshToken)
-        {
-            return await _context.UsersAccounts.FirstOrDefaultAsync(ua => ua.RefreshToken == refreshToken);
-        }
-
-        public async Task<UserAccount?> GetBySessionIdAsync(Guid sessionId)
-        {
-            return await _context.UsersAccounts.FirstOrDefaultAsync(ua => ua.SessionId == sessionId);
         }
     }
 }

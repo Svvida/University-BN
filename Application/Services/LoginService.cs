@@ -47,9 +47,7 @@ namespace Application.Services
                 // Generate session ID and save session & refresh token using TokenManager
                 sessionId = _tokenManager.GenerateSessionId();
                 var refreshToken = _tokenManager.GenerateRefreshToken();
-                _tokenManager.StoreSession(user.Id.ToString(), sessionId, refreshToken);
-
-                await _accountRepository.UpdateAsync(user);
+                _tokenManager.StoreSession(user.Id.ToString(), sessionId, refreshToken, loginDto.RememberMe);
 
                 _logger.LogInformation("User logged in with 'Remember Me'. Session ID and refresh token saved in memory.");
             }
@@ -61,12 +59,12 @@ namespace Application.Services
             return (token, sessionId);
         }
 
-        public async Task<(string token, string sessionId)> RefreshTokenAsync(string userId, string sessionId, string refreshToken)
+        public async Task<(string token, string sessionId)> RefreshTokenAsync(string sessionId, string refreshToken)
         {
             _logger.LogInformation("Attempting to refresh token with session ID: {SessionId}", sessionId);
 
             // Refresh the access token using TokenManager
-            var newToken = await _tokenManager.RefreshAccessTokenAsync(userId, sessionId);
+            var newToken = await _tokenManager.RefreshAccessTokenAsync(sessionId);
 
             if (newToken == null)
             {
@@ -74,7 +72,7 @@ namespace Application.Services
                 return (null, null);
             }
 
-            _logger.LogInformation("Generated new access token for userId: {UserId}. Session ID remains the same: {SessionId}", userId, sessionId);
+            _logger.LogInformation("Generated new access token for Session ID: {SessionId}", sessionId);
 
             return (newToken, sessionId);
         }

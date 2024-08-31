@@ -11,10 +11,6 @@ namespace Domain.Interfaces.Repositories
         Task CreateAsync(UserAccount userAccount);
         Task UpdateAsync(UserAccount userAccount);
         Task DeleteAsync(Guid id);
-        Task<UserAccount> GetByUsername(string username);
-        Task<UserAccount?> GetByRefreshTokenAsync(string refreshToken);
-        Task<UserAccount?> GetBySessionIdAsync(Guid sessionId);
-
         IEnumerable<string> GetAllUsernames();
     }
 }

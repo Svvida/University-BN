@@ -4,6 +4,7 @@ using Domain.Interfaces;
 using Domain.Interfaces.Repositories;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace RestApi.Controllers.Authorization
 {
@@ -44,14 +45,20 @@ namespace RestApi.Controllers.Authorization
             }
 
             // Only set the sessionId cookie and save session to database if "Remember Me" is true
-            if (loginDto.RememberMe && sessionId is not null)
+            if (sessionId is not null)
             {
-                _httpJwtService.SetSessionIdCookie(Response, sessionId, DateTime.Now.AddDays(7));
-                _logger.LogInformation("Login successful with 'Remember Me' for user: {Identifier}. Tokens issued.", loginDto.Identifier);
-            }
-            else
-            {
-                _logger.LogInformation("Login successful without 'Remember Me' for user: {Identifier}. Only access token issued.", loginDto.Identifier);
+                bool rememberMe = loginDto.RememberMe;
+
+                if (rememberMe)
+                {
+                    _httpJwtService.SetSessionIdCookie(Response, sessionId, DateTime.Now.AddDays(7)); // Persistent cookie
+                    _logger.LogInformation("Login successful with 'Remember Me' for user: {Identifier}. Tokens issued.", loginDto.Identifier);
+                }
+                else
+                {
+                    _httpJwtService.SetSessionIdCookie(Response, sessionId, null); // Session cookie (expires on browser close)
+                    _logger.LogInformation("Login successful without 'Remember Me' for user: {Identifier}. Session cookie issued.", loginDto.Identifier);
+                }
             }
 
             return Ok(new { accessToken = token });
@@ -69,6 +76,16 @@ namespace RestApi.Controllers.Authorization
                 return Unauthorized("No session ID provided.");
             }
 
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", string.Empty);
+
+            if (tokenHandler.CanReadToken(jwtToken))
+            {
+                var token = tokenHandler.ReadJwtToken(jwtToken);
+                var userIdFromToken = token.Claims.First(claim => claim.Type == "userId")?.Value;
+                _logger.LogInformation($"Extracted User ID directly from JWT: {userIdFromToken}");
+            }
+
             var userId = User.FindFirst("userId")?.Value;  // Retrieve userId from JWT claims
             if (string.IsNullOrEmpty(userId))
             {
@@ -76,7 +93,7 @@ namespace RestApi.Controllers.Authorization
                 return Unauthorized("Invalid user information.");
             }
 
-            var (newToken, newSessionId) = await _loginService.RefreshTokenAsync(userId, sessionId, null); // Adjusted for the centralized logic
+            var (newToken, newSessionId) = await _loginService.RefreshTokenAsync(sessionId, null); // Adjusted for the centralized logic
 
             if (newToken == null)
             {

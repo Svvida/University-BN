@@ -21,6 +21,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OfficeOpenXml;
+using RestApi.Middlewares;
 using Serilog;
 using System.Text;
 using Utilities;
@@ -129,6 +130,13 @@ namespace RestApi
             builder.Services.AddTransient<IEmailService, MailKitEmailService>();
             builder.Services.AddTransient<IPasswordResetService, PasswordResetService>();
             builder.Services.AddSingleton<IPasswordResetTokenStore, InMemoryPasswordResetTokenStore>();
+            builder.Services.AddSingleton<ITokenManager>(provider =>
+            {
+                var jwtService = provider.CreateScope().ServiceProvider.GetRequiredService<IJwtService>();
+                var logger = provider.GetRequiredService<ILogger<TokenManager>>();
+                var accountRepository = provider.CreateScope().ServiceProvider.GetRequiredService<IAccountRepository>();
+                return new TokenManager(jwtService, logger, accountRepository);
+            });
 
             // Register Application Services
             builder.Services.AddScoped<IAccountService, AccountService>();
@@ -255,7 +263,7 @@ namespace RestApi
                     c.RoutePrefix = string.Empty;
                 });
             }
-
+            app.UseMiddleware<SessionActivityMiddleware>();    
             app.UseHttpsRedirection();
             app.UseCors("AllowFrontend");
             app.UseAuthentication();

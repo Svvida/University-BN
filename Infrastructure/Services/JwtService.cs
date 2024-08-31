@@ -33,6 +33,7 @@ namespace Infrastructure.Services
 
             // Add roles to the claims
             var roleClaims = userAccount.UserAccountRoles.Select(ur => ur.Role.Name).ToList();
+            _logger.LogInformation($"Adding roles to token: {string.Join(", ", roleClaims)}");
             foreach (var role in roleClaims)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
@@ -50,7 +51,7 @@ namespace Infrastructure.Services
                 expires: DateTime.Now.AddMinutes(15),
                 signingCredentials: creds);
 
-            _logger.LogInformation($"JWT access token: {token}");
+            _logger.LogInformation($"Generated JWT access token: {new JwtSecurityTokenHandler().WriteToken(token)}");
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }

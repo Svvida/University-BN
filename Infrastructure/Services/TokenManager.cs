@@ -1,4 +1,5 @@
 ﻿using Domain.Entities.AccountEntities;
+using Domain.InMemoryClasses;
 using Domain.Interfaces;
 using Domain.Interfaces.Repositories;
 using Microsoft.Extensions.Logging;
@@ -9,12 +10,14 @@ namespace Infrastructure.Services
 {
     public class TokenManager : ITokenManager
     {
-        private readonly ConcurrentDictionary<string, (string refreshToken, DateTime expiry)> _sessions
-            = new ConcurrentDictionary<string, (string refreshToken, DateTime expiry)>();
+        private readonly ConcurrentDictionary<string, SessionData> _sessions
+            = new ConcurrentDictionary<string, SessionData>();
 
         private readonly IJwtService _jwtService;
         private readonly ILogger<TokenManager> _logger;
         private readonly IAccountRepository _accountRepository;
+
+        private readonly TimeSpan _sessionTimeout = TimeSpan.FromMinutes(20);
 
         public TokenManager(IJwtService jwtService,
             ILogger<TokenManager> logger,
@@ -23,11 +26,6 @@ namespace Infrastructure.Services
             _jwtService = jwtService;
             _logger = logger;
             _accountRepository = accountRepository;
-        }
-
-        private string GenerateCompositeKey(string userId, string sessionId)
-        {
-            return $"{userId}_{sessionId}";
         }
 
         public string GenerateAccessToken(UserAccount userAccount)
@@ -47,54 +45,103 @@ namespace Infrastructure.Services
             return Guid.NewGuid().ToString();
         }
 
-        public void StoreSession(string userId, string sessionId, string refreshToken)
+        public void StoreSession(string userId, string sessionId, string refreshToken, bool rememberMe)
         {
-            var refreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
-            var key = GenerateCompositeKey(userId, sessionId);
-            _sessions[key] = (refreshToken, refreshTokenExpiryTime);
+            var refreshTokenExpiryTime = rememberMe ?
+                DateTime.UtcNow.AddDays(7)
+                : DateTime.UtcNow.AddMinutes(20);
+            var sessionData = new SessionData
+            {
+                UserId = userId,
+                RefreshToken = refreshToken,
+                Expiry = refreshTokenExpiryTime,
+                LastActivity = DateTime.UtcNow,
+                RememberMe = rememberMe
+            };
+            _sessions[sessionId] = sessionData;
             _logger.LogInformation($"Stored session with sessionId: {sessionId} for userId: {userId}, expiry: {refreshTokenExpiryTime}.");
         }
 
-        public bool ValidateSession(string userId, string sessionId, out string refreshToken)
+        public bool ValidateSession(string sessionId, out string refreshToken)
         {
             refreshToken = null;
-            var key = GenerateCompositeKey(userId, sessionId);
 
-            if(_sessions.TryGetValue(key, out var sessionData))
+            if (_sessions.TryGetValue(sessionId, out var sessionData))
             {
-                if(sessionData.expiry > DateTime.UtcNow)
+                if (sessionData.Expiry > DateTime.UtcNow)
                 {
-                    refreshToken = sessionData.refreshToken;
-                    _logger.LogInformation($"Session is valid for userId: {userId}, sessionId: {sessionId}");
-                    return true;
+                    // If not "Remember Me", check and possibly update LastActivity
+                    if (!sessionData.RememberMe)
+                    {
+                        if (sessionData.LastActivity.Add(_sessionTimeout) > DateTime.UtcNow)
+                        {
+                            // Sliding expiration handled by middleware
+                            refreshToken = sessionData.RefreshToken;
+                            _logger.LogInformation($"Session is valid and active for sessionId: {sessionId}");
+                            return true;
+                        }
+                        else
+                        {
+                            // Session expired due to inactivity
+                            _sessions.TryRemove(sessionId, out _);
+                            _logger.LogInformation($"Session expired due to inactivity for sessionId: {sessionId}");
+                        }
+                    }
+                    else
+                    {
+                        // "Remember Me" sessions do not use sliding expiration
+                        refreshToken = sessionData.RefreshToken;
+                        _logger.LogInformation($"Session is valid for 'Remember Me' sessionId: {sessionId}");
+                        return true;
+                    }
                 }
-
-                // Invalidate session if expired
-                _sessions.TryRemove(key, out _);
-                _logger.LogInformation($"Session expired for userId: {userId}, sessionId: {sessionId}");
+                else
+                {
+                    // Session expired
+                    _sessions.TryRemove(sessionId, out _);
+                    _logger.LogInformation($"Session expired for sessionId: {sessionId}");
+                }
             }
-            _logger.LogInformation($"Session is invalid or expired for userId: {userId}, sessionId: {sessionId}");
+
+            _logger.LogInformation($"Session is invalid or expired for sessionId: {sessionId}");
             return false;
         }
 
-        public void InvalidateSession(string userId, string sessionId)
+        public void InvalidateSession(string sessionId)
         {
-            var key = GenerateCompositeKey(userId, sessionId);
-            _sessions.TryRemove(key, out _);
-            _logger.LogInformation($"Invalidated session for userId: {userId}, sessionId: {sessionId}");
+            _sessions.TryRemove(sessionId, out _);
+            _logger.LogInformation($"Invalidated session with sessionId: {sessionId}");
         }
 
-        public async Task<string> RefreshAccessTokenAsync(string userId, string sessionId)
+        public async Task<string> RefreshAccessTokenAsync(string sessionId)
         {
-            if(ValidateSession(userId, sessionId, out var refreshToken))
+            if(ValidateSession(sessionId, out var refreshToken))
             {
-                var userAccount = await _accountRepository.GetByIdAsync(new Guid(userId));
-                var newAccessToken = GenerateAccessToken(userAccount);
+                if(_sessions.TryGetValue(sessionId, out var sessionData))
+                {
+                    var userAccount = await _accountRepository.GetByIdAsync(new Guid(sessionData.UserId));
+                    var newAccessToken = GenerateAccessToken(userAccount);
 
-                return newAccessToken;
+                    return newAccessToken;
+                }
             }
 
             return null;
+        }
+
+        public SessionData GetSession(string sessionId)
+        {
+            _sessions.TryGetValue(sessionId, out var sessionData);
+            return sessionData;
+        }
+
+        public void UpdateLastActivity(string sessionId)
+        {
+            if( _sessions.TryGetValue(sessionId, out var sessionData))
+            {
+                sessionData.LastActivity = DateTime.UtcNow;
+                _logger.LogInformation($"LastActivity updated for sessionId: {sessionId} to {sessionData.LastActivity}");
+            }
         }
     }
 }

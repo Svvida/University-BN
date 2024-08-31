@@ -12,7 +12,7 @@ namespace Infrastructure.Services
             _logger = logger;
         }
 
-        public void SetSessionIdCookie(HttpResponse response, string sessionId, DateTime expiry)
+        public void SetSessionIdCookie(HttpResponse response, string sessionId, DateTime? expiry)
         {
             _logger.LogInformation("Setting session ID cookie with expiry: {Expiry}", expiry);
             var cookieOptions = new CookieOptions
