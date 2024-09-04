@@ -9,5 +9,6 @@ namespace Domain.Interfaces.Repositories
         Task CreateAsync(Role role);
         Task UpdateAsync(Role role);
         Task DeleteAsync(Guid id);
+        Task<Role> GetRoleByAccountId(Guid accountId);
     }
 }

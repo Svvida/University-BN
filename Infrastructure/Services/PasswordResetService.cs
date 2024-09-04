@@ -65,7 +65,7 @@ namespace Infrastructure.Services
         {
             var user = await _accountRepository.GetByFieldAsync(AccountSearchableFields.Email, email);
 
-            if(user is null)
+            if (user is null)
             {
                 throw new KeyNotFoundException($"No user found with email {email}");
             }

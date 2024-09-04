@@ -20,12 +20,12 @@ namespace RestApi.Middlewares
 
         public async Task InvokeAsync(HttpContext context)
         {
-            if(context.Request.Cookies.TryGetValue("sessionId", out var sessionId))
+            if (context.Request.Cookies.TryGetValue("sessionId", out var sessionId))
             {
-                if(_tokenManager.ValidateSession(sessionId, out _))
+                if (_tokenManager.ValidateSession(sessionId, out _))
                 {
                     var session = _tokenManager.GetSession(sessionId);
-                    if(session is not null || !session.RememberMe)
+                    if (session is not null || !session.RememberMe)
                     {
                         _tokenManager.UpdateLastActivity(sessionId);
                         _logger.LogInformation($"Updated LastActivity for sessionId: {sessionId}");

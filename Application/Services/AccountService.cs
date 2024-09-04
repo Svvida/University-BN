@@ -2,7 +2,10 @@
 using Application.Interfaces;
 using AutoMapper;
 using Domain.Entities.AccountEntities;
+using Domain.Entities.EmployeeEntities;
+using Domain.Entities.StudentEntities;
 using Domain.Enums.SearchableFields;
+using Domain.Interfaces.InterfacesBase;
 using Domain.Interfaces.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
@@ -15,13 +18,26 @@ namespace Application.Services
         private readonly IAccountRepository _accountRepository;
         private readonly IPasswordHasher<UserAccount> _passwordHasher;
         private readonly ILogger<AccountService> _logger;
+        private readonly IPersonRepository<Student> _studentRepository;
+        private readonly IPersonRepository<Employee> _employeeRepository;
+        private readonly IRoleRepository _roleRepository;
 
-        public AccountService(IMapper mapper, IAccountRepository accountRepository, IPasswordHasher<UserAccount> passwordHasher, ILogger<AccountService> logger)
+        public AccountService(
+            IMapper mapper,
+            IAccountRepository accountRepository,
+            IPasswordHasher<UserAccount> passwordHasher,
+            ILogger<AccountService> logger,
+            IPersonRepository<Student> studentRepository,
+            IPersonRepository<Employee> employeeRepository,
+            IRoleRepository roleRepository)
         {
             _mapper = mapper;
             _accountRepository = accountRepository;
             _passwordHasher = passwordHasher;
             _logger = logger;
+            _studentRepository = studentRepository;
+            _employeeRepository = employeeRepository;
+            _roleRepository = roleRepository;
         }
 
         public async Task<AccountFullDto> GetByIdAsync(Guid id)
@@ -93,6 +109,60 @@ namespace Application.Services
             {
                 throw new KeyNotFoundException("Account not found");
             }
+        }
+
+        public async Task<VisibilityFieldsDto> GetVisibilityFieldsAsync(Guid accountId)
+        {
+            var role = await _roleRepository.GetRoleByAccountId(accountId);
+            if (role is null)
+            {
+                throw new KeyNotFoundException("Role not found for the account");
+            }
+
+            _logger.LogInformation($"Retrieved role: {role.Name}");
+
+            string name = null;
+            string surename = null;
+
+            switch (role.Name)
+            {
+                case "Student":
+                    var student = await _studentRepository.GetByAccountIdAsync(accountId);
+                    name = student.Name;
+                    surename = student.Surname;
+                    break;
+
+                case "Teacher":
+                    var teacher = await _employeeRepository.GetByAccountIdAsync(accountId);
+                    name = teacher.Name;
+                    surename = teacher.Surname;
+                    break;
+
+                default:
+                    throw new Exception("Unknown role type");
+            }
+
+            var visibilityFieldsDto = new VisibilityFieldsDto
+            {
+                Name = name,
+                Surename = surename,
+                Organizer = string.Empty
+            };
+
+            return visibilityFieldsDto;
+        }
+
+        public async Task UpdatePasswordAsync(Guid accountId, string newPassword)
+        {
+            var account = await _accountRepository.GetByIdAsync(accountId);
+            if (account is null)
+            {
+                throw new KeyNotFoundException("Account not found");
+            }
+
+            account.Password = _passwordHasher.HashPassword(account, newPassword);
+
+            await _accountRepository.UpdateAsync(account);
         }
     }
 }

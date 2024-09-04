@@ -68,5 +68,15 @@ namespace Infrastructure.Repositories
                 throw new KeyNotFoundException("Role not found");
             }
         }
+
+        public async Task<Role> GetRoleByAccountId(Guid accountId)
+        {
+            var role = await _context.UsersAccountsRoles
+                .Where(uar => uar.AccountId == accountId)
+                .Select(uar => uar.Role)
+                .FirstOrDefaultAsync();
+
+            return role;
+        }
     }
 }

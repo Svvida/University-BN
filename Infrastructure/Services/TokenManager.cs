@@ -115,9 +115,9 @@ namespace Infrastructure.Services
 
         public async Task<string> RefreshAccessTokenAsync(string sessionId)
         {
-            if(ValidateSession(sessionId, out var refreshToken))
+            if (ValidateSession(sessionId, out var refreshToken))
             {
-                if(_sessions.TryGetValue(sessionId, out var sessionData))
+                if (_sessions.TryGetValue(sessionId, out var sessionData))
                 {
                     var userAccount = await _accountRepository.GetByIdAsync(new Guid(sessionData.UserId));
                     var newAccessToken = GenerateAccessToken(userAccount);
@@ -137,7 +137,7 @@ namespace Infrastructure.Services
 
         public void UpdateLastActivity(string sessionId)
         {
-            if( _sessions.TryGetValue(sessionId, out var sessionData))
+            if (_sessions.TryGetValue(sessionId, out var sessionData))
             {
                 sessionData.LastActivity = DateTime.UtcNow;
                 _logger.LogInformation($"LastActivity updated for sessionId: {sessionId} to {sessionData.LastActivity}");

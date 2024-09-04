@@ -42,4 +42,10 @@ namespace Application.DTOs.Account.Dtos
     {
         public string Password { get; set; }
     }
+
+    public class UpdatePasswordDto
+    {
+        public Guid AccountId { get; set; }
+        public string NewPassword { get; set; }
+    }
 }

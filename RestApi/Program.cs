@@ -263,7 +263,7 @@ namespace RestApi
                     c.RoutePrefix = string.Empty;
                 });
             }
-            app.UseMiddleware<SessionActivityMiddleware>();    
+            app.UseMiddleware<SessionActivityMiddleware>();
             app.UseHttpsRedirection();
             app.UseCors("AllowFrontend");
             app.UseAuthentication();

@@ -11,10 +11,12 @@ namespace RestApi.Controllers.Account
     public class AccountController : ControllerBase
     {
         private readonly IAccountService _accountService;
+        private readonly ILogger<AccountController> _logger;
 
-        public AccountController(IAccountService accountService)
+        public AccountController(IAccountService accountService, ILogger<AccountController> logger)
         {
             _accountService = accountService;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -63,6 +65,26 @@ namespace RestApi.Controllers.Account
             catch (Exception ex)
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while creating the account");
+            }
+        }
+
+        [HttpPost("updatePassword")]
+        public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordDto dto)
+        {
+            _logger.LogInformation($"Received AccountId: {dto.AccountId}");
+            if (string.IsNullOrWhiteSpace(dto.NewPassword) || dto.NewPassword.Length < 8)
+            {
+                return BadRequest("Password must be at lease 8 characters long");
+            }
+
+            try
+            {
+                await _accountService.UpdatePasswordAsync(dto.AccountId, dto.NewPassword);
+                return Ok("Password updated successfully");
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound("Account not found");
             }
         }
     }
