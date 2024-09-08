@@ -19,7 +19,7 @@ namespace Infrastructure.Services
             {
                 HttpOnly = true,
                 Secure = true,
-                SameSite = SameSiteMode.Strict,
+                SameSite = SameSiteMode.None,
                 Expires = expiry
             };
 
@@ -30,7 +30,7 @@ namespace Infrastructure.Services
         public string GetSessionIdFromCookies(HttpRequest request)
         {
             _logger.LogInformation("Retrieving session ID from cookies.");
-            var sessionId = request.Cookies["sessionId"];
+            var sessionId = request.Cookies["sessionID"];
             if (string.IsNullOrEmpty(sessionId))
             {
                 _logger.LogWarning("Session ID not found in cookies.");

@@ -3,6 +3,7 @@ using Application.Mappers;
 using Application.Services;
 using Domain.Entities.AccountEntities;
 using Domain.Entities.EmployeeEntities;
+using Domain.Entities.EventEntities;
 using Domain.Entities.StudentEntities;
 using Domain.Interfaces;
 using Domain.Interfaces.Base;
@@ -110,7 +111,8 @@ namespace RestApi
             builder.Services.AddDbContext<UniversityContext>(options =>
                 options.UseMySql(connextionString, ServerVersion.AutoDetect(connextionString))
                 .EnableSensitiveDataLogging(false)
-                .LogTo(Console.WriteLine, LogLevel.Warning));
+                .LogTo(Console.WriteLine, LogLevel.Warning),
+                ServiceLifetime.Scoped);
 
             // Add configuration for SmtpSettings
             builder.Services.Configure<SmtpSettings>(configuration.GetSection("SmtpSettings"));
@@ -127,6 +129,7 @@ namespace RestApi
             builder.Services.AddScoped<HttpJwtService>();
             builder.Services.AddScoped<ICRUDRepository<Employee>, CRUDRepository<Employee>>();
             builder.Services.AddScoped<ICRUDRepository<Student>, CRUDRepository<Student>>();
+            builder.Services.AddScoped<ICRUDRepository<Event>, CRUDRepository<Event>>();
             builder.Services.AddTransient<IEmailService, MailKitEmailService>();
             builder.Services.AddTransient<IPasswordResetService, PasswordResetService>();
             builder.Services.AddSingleton<IPasswordResetTokenStore, InMemoryPasswordResetTokenStore>();

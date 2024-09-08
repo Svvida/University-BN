@@ -59,23 +59,6 @@ namespace Application.Services
             return (token, sessionId);
         }
 
-        public async Task<(string token, string sessionId)> RefreshTokenAsync(string sessionId, string refreshToken)
-        {
-            _logger.LogInformation("Attempting to refresh token with session ID: {SessionId}", sessionId);
-
-            // Refresh the access token using TokenManager
-            var newToken = await _tokenManager.RefreshAccessTokenAsync(sessionId);
-
-            if (newToken == null)
-            {
-                _logger.LogWarning("Failed to refresh token. Session or refresh token might be invalid or expired.");
-                return (null, null);
-            }
-
-            _logger.LogInformation("Generated new access token for Session ID: {SessionId}", sessionId);
-
-            return (newToken, sessionId);
-        }
         public void Logout(string sessionId)
         {
             _logger.LogInformation("Logging out session with sessionId: {SessionId}", sessionId);

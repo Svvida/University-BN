@@ -1,8 +1,8 @@
 ﻿using Application.DTOs;
 using Application.Interfaces;
+using Domain.Interfaces;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
 
 namespace RestApi.Controllers.Authorization
 {
@@ -13,15 +13,18 @@ namespace RestApi.Controllers.Authorization
         private readonly ILoginService _loginService;
         private readonly HttpJwtService _httpJwtService;
         private readonly ILogger<LoginController> _logger;
+        private readonly ITokenManager _tokenManager;
 
         public LoginController(
             ILoginService loginService,
             HttpJwtService httpJwtService,
-            ILogger<LoginController> logger)
+            ILogger<LoginController> logger,
+            ITokenManager tokenManager)
         {
             _loginService = loginService;
             _httpJwtService = httpJwtService;
             _logger = logger;
+            _tokenManager = tokenManager;
         }
 
         [HttpPost("auth")]
@@ -62,9 +65,15 @@ namespace RestApi.Controllers.Authorization
             return Ok(new { accessToken = token });
         }
 
-        [HttpGet("auth/refresh")]
-        public async Task<IActionResult> Refresh()
+        [HttpPost("auth/refresh")]
+        public async Task<IActionResult> Refresh([FromBody] RefreshDto refreshDto)
         {
+            if (!Request.ContentType.Equals("application/json", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogWarning($"Unsupported Content-Type: {Request.ContentType}");
+                return NoContent();
+            }
+
             _logger.LogInformation("Attempting to refresh token.");
 
             var sessionId = _httpJwtService.GetSessionIdFromCookies(Request);
@@ -74,38 +83,20 @@ namespace RestApi.Controllers.Authorization
                 return Unauthorized("No session ID provided.");
             }
 
-            var tokenHandler = new JwtSecurityTokenHandler();
-            var jwtToken = Request.Headers["Authorization"].ToString().Replace("Bearer ", string.Empty);
-
-            if (tokenHandler.CanReadToken(jwtToken))
+            var newAccessToken = await _tokenManager.RefreshAccessTokenAsync(sessionId.ToString());
+            if (newAccessToken == null)
             {
-                var token = tokenHandler.ReadJwtToken(jwtToken);
-                var userIdFromToken = token.Claims.First(claim => claim.Type == "userId")?.Value;
-                _logger.LogInformation($"Extracted User ID directly from JWT: {userIdFromToken}");
+                _logger.LogWarning("Failed to refresh token. Session might be invalid or expired.");
+                return Unauthorized("Invalid session or token.");
             }
 
-            var userId = User.FindFirst("userId")?.Value;  // Retrieve userId from JWT claims
-            if (string.IsNullOrEmpty(userId))
-            {
-                _logger.LogWarning("User ID could not be retrieved from the JWT.");
-                return Unauthorized("Invalid user information.");
-            }
+            _logger.LogInformation($"Token refreshed successfully for sessionId: {sessionId}");
 
-            var (newToken, newSessionId) = await _loginService.RefreshTokenAsync(sessionId, null); // Adjusted for the centralized logic
-
-            if (newToken == null)
-            {
-                _logger.LogWarning("Token refresh failed for session ID: {SessionId}", sessionId);
-                return Unauthorized("Invalid session ID or token.");
-            }
-
-            _logger.LogInformation("Token refreshed successfully. New access token issued.");
-
-            return Ok(new { accessToken = newToken });
+            return Ok(new { accessToken = newAccessToken });
         }
 
 
-        [HttpPost("postAuth/logout")]
+        [HttpPost("auth/logout")]
         public IActionResult Logout()
         {
             _logger.LogInformation("User logged out, removing session ID cookie.");
