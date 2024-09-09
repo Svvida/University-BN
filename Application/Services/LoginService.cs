@@ -58,12 +58,5 @@ namespace Application.Services
 
             return (token, sessionId);
         }
-
-        public void Logout(string sessionId)
-        {
-            _logger.LogInformation("Logging out session with sessionId: {SessionId}", sessionId);
-            _tokenManager.InvalidateSession(sessionId);
-            _logger.LogInformation("Session invalidated successfully.");
-        }
     }
 }

@@ -66,7 +66,7 @@ namespace RestApi.Controllers.Authorization
         }
 
         [HttpPost("auth/refresh")]
-        public async Task<IActionResult> Refresh([FromBody] RefreshDto refreshDto)
+        public async Task<IActionResult> Refresh()
         {
             if (!Request.ContentType.Equals("application/json", StringComparison.OrdinalIgnoreCase))
             {
@@ -103,7 +103,7 @@ namespace RestApi.Controllers.Authorization
             var sessionId = _httpJwtService.GetSessionIdFromCookies(Request);
             if (!string.IsNullOrEmpty(sessionId))
             {
-                _loginService.Logout(sessionId);
+                _tokenManager.InvalidateSession(sessionId);
             }
 
             _httpJwtService.RemoveSessionIdCookie(Response);
