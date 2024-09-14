@@ -15,12 +15,14 @@ using Infrastructure.Repositories.RepositoriesBase;
 using Infrastructure.Seeding;
 using Infrastructure.Seeding.Bogus;
 using Infrastructure.Services;
+using Infrastructure.Services.MongoLogging;
 using Infrastructure.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using MongoDB.Driver;
 using OfficeOpenXml;
 using RestApi.Middlewares;
 using Serilog;
@@ -140,6 +142,7 @@ namespace RestApi
                 var accountRepository = provider.CreateScope().ServiceProvider.GetRequiredService<IAccountRepository>();
                 return new TokenManager(jwtService, logger, accountRepository);
             });
+            builder.Services.AddScoped<IMongoLogger, MongoDbLoggerService>();
 
             // Register Application Services
             builder.Services.AddScoped<IAccountService, AccountService>();
@@ -204,6 +207,19 @@ namespace RestApi
                         .AllowAnyMethod()
                         .AllowCredentials();
                     });
+            });
+
+            // Add MongoDB client and database
+            builder.Services.AddSingleton<IMongoClient, MongoClient>(sp =>
+            {
+                var mongoDbConnectionString = configuration.GetConnectionString("MongoDb");
+                return new MongoClient(mongoDbConnectionString);
+            });
+
+            builder.Services.AddScoped<IMongoDatabase>(sp =>
+            {
+                var client = sp.GetRequiredService<IMongoClient>();
+                return client.GetDatabase("UniversityLogs");
             });
         }
 
