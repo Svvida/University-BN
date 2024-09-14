@@ -14,17 +14,20 @@ namespace RestApi.Controllers.Authorization
         private readonly HttpJwtService _httpJwtService;
         private readonly ILogger<LoginController> _logger;
         private readonly ITokenManager _tokenManager;
+        private readonly IMongoLogger _mongoLogger;
 
         public LoginController(
             ILoginService loginService,
             HttpJwtService httpJwtService,
             ILogger<LoginController> logger,
-            ITokenManager tokenManager)
+            ITokenManager tokenManager,
+            IMongoLogger mongoLogger)
         {
             _loginService = loginService;
             _httpJwtService = httpJwtService;
             _logger = logger;
             _tokenManager = tokenManager;
+            _mongoLogger = mongoLogger;
         }
 
         [HttpPost("auth")]
@@ -42,6 +45,7 @@ namespace RestApi.Controllers.Authorization
             if (token is null)
             {
                 _logger.LogWarning("Login failed for user: {Identifier}", loginDto.Identifier);
+                _mongoLogger.LogWarn($"Login failed for user: {loginDto.Identifier}", null);
                 return Unauthorized("Invalid username or password");
             }
 
@@ -54,11 +58,13 @@ namespace RestApi.Controllers.Authorization
                 {
                     _httpJwtService.SetSessionIdCookie(Response, sessionId, DateTime.Now.AddDays(7)); // Persistent cookie
                     _logger.LogInformation("Login successful with 'Remember Me' for user: {Identifier}. Tokens issued.", loginDto.Identifier);
+                    _mongoLogger.LogInfo($"Login successful with 'Remember Me' for user {loginDto.Identifier}. Tokens issued", null);
                 }
                 else
                 {
                     _httpJwtService.SetSessionIdCookie(Response, sessionId, null); // Session cookie (expires on browser close)
                     _logger.LogInformation("Login successful without 'Remember Me' for user: {Identifier}. Session cookie issued.", loginDto.Identifier);
+                    _mongoLogger.LogInfo($"Login successful without 'Remember Me' for user: {loginDto.Identifier}. Session cookie issued.", null);
                 }
             }
 
